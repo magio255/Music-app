@@ -4,3 +4,6 @@ You can change the loading screen by replacing loading.mp4 with your own loading
 <img width="1434" height="706" alt="image" src="https://github.com/user-attachments/assets/a3afa353-ee1c-47b8-ae87-b632a21490cc" />
 
 <img width="1365" height="790" alt="image" src="https://github.com/user-attachments/assets/a9413b67-2823-4135-8fcf-7b0b9d8fcbb1" />
+
+
+<img width="1365" height="796" alt="image" src="https://github.com/user-attachments/assets/240f0e4a-4b10-4778-b290-85500bb780bc" />
