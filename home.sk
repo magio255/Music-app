@@ -1,0 +1,78 @@
+options:
+    prefix: &eʜᴏᴍᴇ &8» &7
+    error: &cʜᴏᴍᴇ &8» &7
+    color: &e
+    delay: 3 seconds
+
+# Variables:
+# {home::%uuid of player%::%string%} - location of the home
+# {home-list::%uuid of player%::*} - list of home names
+
+command /sethome [<text="home">]:
+    trigger:
+        set {_name} to arg 1
+        set {home::%uuid of player%::%{_name}%} to player's location
+        if {home-list::%uuid of player%::*} does not contain {_name}:
+            add {_name} to {home-list::%uuid of player%::*}
+        send "{@prefix}ɴᴀsᴛᴀᴠɪʟ ᴊsɪ sɪ ᴅᴏᴍᴏᴠ s ɴáᴢᴠᴇᴍ {@color}%{_name}%&7."
+
+command /delhome [<text>]:
+    trigger:
+        if arg 1 is not set:
+            send "{@error}ᴘᴏᴜžɪᴛí: /ᴅᴇʟʜᴏᴍᴇ <ɴáᴢᴇᴠ>"
+            stop
+        set {_name} to arg 1
+        if {home::%uuid of player%::%{_name}%} is set:
+            delete {home::%uuid of player%::%{_name}%}
+            remove {_name} from {home-list::%uuid of player%::*}
+            send "{@prefix}sᴍᴀᴢᴀʟ ᴊsɪ ᴅᴏᴍᴏᴠ {@color}%{_name}%&7."
+        else:
+            send "{@error}ᴅᴏᴍᴏᴠ s ɴáᴢᴠᴇᴍ {@color}%{_name}% &7ɴᴇᴇxɪsᴛᴜᴊᴇ."
+
+command /homes:
+    trigger:
+        if size of {home-list::%uuid of player%::*} is 0:
+            send "{@error}ɴᴇᴍáš žáᴅɴé ᴅᴏᴍᴏᴠʏ."
+            stop
+        set {_gui} to a new chest inventory with 3 rows named "&8sᴇᴢɴᴀᴍ ᴅᴏᴍᴏᴠů"
+        set {_slot} to 0
+        loop {home-list::%uuid of player%::*}:
+            set slot {_slot} of {_gui} to red bed named "{@color}%loop-value%" with lore "&7ᴋʟɪᴋɴɪ ᴘʀᴏ ᴛᴇʟᴇᴘᴏʀᴛ."
+            add 1 to {_slot}
+        open {_gui} to player
+
+on inventory click:
+    if name of event-inventory is "&8sᴇᴢɴᴀᴍ ᴅᴏᴍᴏᴠů":
+        cancel event
+        if event-item is red bed:
+            set {_name} to uncolored name of event-item
+            close player's inventory
+            execute player command "/home %{_name}%"
+
+command /home [<text>]:
+    trigger:
+        if arg 1 is not set:
+            if size of {home-list::%uuid of player%::*} is 0:
+                send "{@error}ɴᴇᴍáš žáᴅɴé ᴅᴏᴍᴏᴠʏ."
+                stop
+            if size of {home-list::%uuid of player%::*} is 1:
+                set {_name} to {home-list::%uuid of player%::1}
+            else:
+                execute player command "/homes"
+                stop
+        else:
+            set {_name} to arg 1
+
+        if {home::%uuid of player%::%{_name}%} is set:
+            set {_loc} to {home::%uuid of player%::%{_name}%}
+            send "{@prefix}ᴛᴇʟᴇᴘᴏʀᴛᴀᴄᴇ ᴢᴀ {@delay}..."
+            set {_start_loc} to player's location
+            loop 3 times:
+                wait 1 second
+                if distance between player and {_start_loc} > 0.1:
+                    send "{@error}ᴛᴇʟᴇᴘᴏʀᴛᴀᴄᴇ ᴢʀᴜšᴇɴᴀ! ᴘᴏʜɴᴜʟ ᴊsɪ sᴇ."
+                    stop
+            teleport player to {_loc}
+            send "{@prefix}ʙʏʟ ᴊsɪ ᴛᴇʟᴇᴘᴏʀᴛᴏᴠáɴ ᴅᴏᴍů ({@color}%{_name}%&7)."
+        else:
+            send "{@error}ᴅᴏᴍᴏᴠ s ɴáᴢᴠᴇᴍ {@color}%{_name}% &7ɴᴇᴇxɪsᴛᴜᴊᴇ."
