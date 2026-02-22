@@ -17,8 +17,6 @@ command /sethome [<text="home">]:
         send "{@prefix}ɴᴀsᴛᴀᴠɪʟ ᴊsɪ sɪ ᴅᴏᴍᴏᴠ s ɴáᴢᴠᴇᴍ {@color}%{_name}%&7."
 
 command /delhome [<text>]:
-    tab completions:
-        return {home-list::%uuid of player%::*}
     trigger:
         if arg 1 is not set:
             send "{@error}ᴘᴏᴜžɪᴛí: /ᴅᴇʟʜᴏᴍᴇ <ɴáᴢᴇᴠ>"
@@ -52,8 +50,6 @@ on inventory click:
             execute player command "/home %{_name}%"
 
 command /home [<text>]:
-    tab completions:
-        return {home-list::%uuid of player%::*}
     trigger:
         if arg 1 is not set:
             if size of {home-list::%uuid of player%::*} is 0:
@@ -80,3 +76,6 @@ command /home [<text>]:
             send "{@prefix}ʙʏʟ ᴊsɪ ᴛᴇʟᴇᴘᴏʀᴛᴏᴠáɴ ᴅᴏᴍů ({@color}%{_name}%&7)."
         else:
             send "{@error}ᴅᴏᴍᴏᴠ s ɴáᴢᴠᴇᴍ {@color}%{_name}% &7ɴᴇᴇxɪsᴛᴜᴊᴇ."
+
+on tab complete of "/home" or "/delhome":
+    set tab completions for position 1 to {home-list::%uuid of player%::*}
