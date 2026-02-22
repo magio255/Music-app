@@ -1,0 +1,14 @@
+options:
+    prefix: &6ᴋɪᴛ &8» &7
+    color: &6
+
+command /kit:
+    trigger:
+        give player netherite helmet of protection 4, respiration 3, aqua affinity, unbreaking 3, mending and thorns 3
+        give player netherite chestplate of protection 4, unbreaking 3, mending and thorns 3
+        give player netherite leggings of protection 4, swift sneak 3, unbreaking 3, mending and thorns 3
+        give player netherite boots of protection 4, feather falling 4, depth strider 3, soul speed 3, unbreaking 3, mending and thorns 3
+        give player mace of density 5, breach 4, wind burst 3, unbreaking 3 and mending
+        give player shield of unbreaking 3 and mending
+        give 64 enchanted golden apple to player
+        send "{@prefix}ᴅᴏsᴛᴀʟ ᴊsɪ ɴᴇᴛʜᴇʀɪᴛᴇ ᴠýʙᴀᴠᴜ."
