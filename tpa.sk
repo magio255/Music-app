@@ -131,7 +131,7 @@ command /tpaccept:
                 stop
 
         if {_other} is online:
-            teleport {_p} to {_other}
+            execute console command "/minecraft:tp %{_p}% %{_other}%"
             send "{@prefix}ʙʏʟ ᴊsɪ ᴛᴇʟᴇᴘᴏʀᴛᴏᴠáɴ." to {_p}
         else:
             send "{@error}ʜʀáč ᴊɪž ɴᴇɴí ᴘřɪᴘᴏᴊᴇɴ." to {_p}
