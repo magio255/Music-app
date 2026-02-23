@@ -125,20 +125,16 @@ command /tpaccept:
             if {_other} is not online:
                 send "{@error}ᴛᴇʟᴇᴘᴏʀᴛᴀᴄᴇ ᴢʀᴜšᴇɴᴀ! ʜʀáč sᴇ ᴏᴅᴘᴏᴊɪʟ." to {_p}
                 stop
-            if distance between {_p} and {_loc} > 0.1:
+            if distance between {_p} and {_loc} > 0.5:
                 send "{@error}ᴛᴇʟᴇᴘᴏʀᴛᴀᴄᴇ ᴢʀᴜšᴇɴᴀ! ᴘᴏʜɴᴜʟ ᴊsɪ sᴇ." to {_p}
                 send "{@error}ᴛᴇʟᴇᴘᴏʀᴛᴀᴄᴇ ᴢʀᴜšᴇɴᴀ! ʜʀáč sᴇ ᴘᴏʜɴᴜʟ." to {_other}
                 stop
 
-        if {_type} is "to":
-            if {_target} is online:
-                teleport {_target} to player
-                send "{@prefix}ʙʏʟ ᴊsɪ ᴛᴇʟᴇᴘᴏʀᴛᴏᴠáɴ." to {_target}
-            else:
-                send "{@error}ʜʀáč ᴊɪž ɴᴇɴí ᴘřɪᴘᴏᴊᴇɴ."
+        if {_other} is online:
+            teleport {_p} to {_other}
+            send "{@prefix}ʙʏʟ ᴊsɪ ᴛᴇʟᴇᴘᴏʀᴛᴏᴠáɴ." to {_p}
         else:
-            teleport player to {_target}
-            send "{@prefix}ʙʏʟ ᴊsɪ ᴛᴇʟᴇᴘᴏʀᴛᴏᴠáɴ." to player
+            send "{@error}ʜʀáč ᴊɪž ɴᴇɴí ᴘřɪᴘᴏᴊᴇɴ." to {_p}
 
 command /tpadeny:
     aliases: tpdeny, tpa-deny
