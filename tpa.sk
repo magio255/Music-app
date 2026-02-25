@@ -22,8 +22,18 @@ command /tpa [<player>]:
         if {tpaoff::%uuid of arg 1%} is set:
             send "{@error}ʜʀáč ᴍá ᴠʏᴘɴᴜᴛé žáᴅᴏsᴛɪ ᴏ ᴛᴇʟᴇᴘᴏʀᴛ."
             stop
+        set {_waited} to difference between {tpa::cooldown::%uuid of player%} and now
+        if {_waited} is less than 5 seconds:
+            set {_remaining} to 5 seconds
+            remove {_waited} from {_remaining}
+            send "{@error}ᴍᴜsíš ᴘᴏčᴋᴀᴛ ᴊᴇšᴛě %{_remaining}% ᴘřᴇᴅ ᴅᴀʟší žáᴅᴏsᴛí."
+            stop
+        if {tpa::sent::%uuid of player%} is set:
+            send "{@error}ᴜž ᴍáš ᴀᴋᴛɪᴠɴí žáᴅᴏsᴛ ᴏ ᴛᴇʟᴇᴘᴏʀᴛ. ᴢʀᴜš ᴊɪ ᴘᴏᴍᴏᴄí /ᴛᴘᴀᴄᴀɴᴄᴇʟ."
+            stop
         set {tpa::request::%uuid of arg 1%} to player
         set {tpa::sent::%uuid of player%} to arg 1
+        set {tpa::cooldown::%uuid of player%} to now
         set {tpa::type::%uuid of arg 1%} to "to"
         set {_now} to now
         set {tpa::time::%uuid of arg 1%} to {_now}
@@ -50,8 +60,18 @@ command /tpahere [<player>]:
         if {tpaoff::%uuid of arg 1%} is set:
             send "{@error}ʜʀáč ᴍá ᴠʏᴘɴᴜᴛé žáᴅᴏsᴛɪ ᴏ ᴛᴇʟᴇᴘᴏʀᴛ."
             stop
+        set {_waited} to difference between {tpa::cooldown::%uuid of player%} and now
+        if {_waited} is less than 5 seconds:
+            set {_remaining} to 5 seconds
+            remove {_waited} from {_remaining}
+            send "{@error}ᴍᴜsíš ᴘᴏčᴋᴀᴛ ᴊᴇšᴛě %{_remaining}% ᴘřᴇᴅ ᴅᴀʟší žáᴅᴏsᴛí."
+            stop
+        if {tpa::sent::%uuid of player%} is set:
+            send "{@error}ᴜž ᴍáš ᴀᴋᴛɪᴠɴí žáᴅᴏsᴛ ᴏ ᴛᴇʟᴇᴘᴏʀᴛ. ᴢʀᴜš ᴊɪ ᴘᴏᴍᴏᴄí /ᴛᴘᴀᴄᴀɴᴄᴇʟ."
+            stop
         set {tpa::request::%uuid of arg 1%} to player
         set {tpa::sent::%uuid of player%} to arg 1
+        set {tpa::cooldown::%uuid of player%} to now
         set {tpa::type::%uuid of arg 1%} to "here"
         set {_now} to now
         set {tpa::time::%uuid of arg 1%} to {_now}
