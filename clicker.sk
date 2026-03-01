@@ -61,29 +61,32 @@ command /clicker [<text>] [<text>]:
             set {_x} to x-coord of player
             set {_y} to y-coord of player
             set {_z} to z-coord of player
-            set {_world} to world of player
+            set {_world} to name of world of player
 
             set {_t} to {clicker::type_str}
             if {_t} is not set:
                 set {_t} to "skeleton"
 
-            # Spawn Moba a Hologramů přes SUMMON (nejsvobnější cesta)
-            execute console command "summon %{_t}% %{_x}% %{_y}% %{_z}% {Tags:[""clicker_mob""],Invulnerable:1b,NoAI:1b,PersistenceRequired:1b,CustomName:'{""text"":""{@mob_name}""}',CustomNameVisible:1b}"
+            # --- SUMMON PŘES MINECRAFT PŘÍKAZY (NEJSPOLÉHLIVĚJŠÍ) ---
 
+            # 1. Mob
+            execute console command "/minecraft:execute in %{_world}% run minecraft:summon %{_t}% %{_x}% %{_y}% %{_z}% {Tags:[""clicker_mob""],Invulnerable:1b,NoAI:1b,PersistenceRequired:1b,CustomName:'{""text"":""{@mob_name}""}',CustomNameVisible:1b}"
+
+            # 2. Hologramy (Armor Standy)
             set {_hy} to {_y} + 3.0
-            execute console command "summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h1""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":""&r""}'}"
+            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h1""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
 
             set {_hy} to {_hy} - 0.3
-            execute console command "summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h2""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":""&r""}'}"
+            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h2""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
 
             set {_hy} to {_hy} - 0.3
-            execute console command "summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h3""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":""&r""}'}"
+            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h3""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
 
             set {_hy} to {_hy} - 0.3
-            execute console command "summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h4""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":""&r""}'}"
+            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h4""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
 
             set {_hy} to {_hy} - 0.6
-            execute console command "summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h5""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":""&r""}'}"
+            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h5""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
 
             wait 10 ticks
             cacheEntities()
@@ -99,7 +102,7 @@ command /clicker [<text>] [<text>]:
                 set {_tags::*} to scoreboard tags of loop-entity
                 loop {_tags::*}:
                     if loop-value-2 contains "clicker_":
-                        kill loop-entity
+                        execute console command "/minecraft:kill %uuid of loop-entity%"
 
             delete {clicker::location}
             delete {-clicker::session::*}
@@ -119,22 +122,17 @@ command /clicker [<text>] [<text>]:
             loop all entities in radius 15 around {_old_loc}:
                 set {_tags::*} to scoreboard tags of loop-entity
                 if {_tags::*} contains "clicker_mob":
-                    teleport loop-entity to {clicker::location}
+                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y}% %{_z}%"
                 else if {_tags::*} contains "clicker_h1":
-                    set {_loc} to location({_x}, {_y} + 3.0, {_z}, world of player)
-                    teleport loop-entity to {_loc}
+                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 3.0% %{_z}%"
                 else if {_tags::*} contains "clicker_h2":
-                    set {_loc} to location({_x}, {_y} + 2.7, {_z}, world of player)
-                    teleport loop-entity to {_loc}
+                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 2.7% %{_z}%"
                 else if {_tags::*} contains "clicker_h3":
-                    set {_loc} to location({_x}, {_y} + 2.4, {_z}, world of player)
-                    teleport loop-entity to {_loc}
+                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 2.4% %{_z}%"
                 else if {_tags::*} contains "clicker_h4":
-                    set {_loc} to location({_x}, {_y} + 2.1, {_z}, world of player)
-                    teleport loop-entity to {_loc}
+                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 2.1% %{_z}%"
                 else if {_tags::*} contains "clicker_h5":
-                    set {_loc} to location({_x}, {_y} + 1.5, {_z}, world of player)
-                    teleport loop-entity to {_loc}
+                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 1.5% %{_z}%"
 
             cacheEntities()
             send "{@prefix} &aᴍᴏʙ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ ʙʏʟʏ ᴘřᴇsᴜɴᴜᴛʏ!"
