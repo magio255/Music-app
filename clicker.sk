@@ -1,0 +1,209 @@
+# ==========================================
+#             ᴄʟɪᴄᴋᴇʀ ᴍᴏʙ sᴋʀɪᴘᴛ
+# ==========================================
+
+options:
+    prefix: &6&lᴄʟɪᴄᴋᴇʀ &8»&f
+    mob_name: &e&lᴄʟɪᴄᴋᴇʀ ᴍᴏʙ
+    reward_money: 1000
+
+    # Šance na odměny (v procentech)
+    chance_iron: 10
+    chance_gold: 5
+    chance_diamond: 2
+    chance_key: 0.5
+
+variables:
+    {clicker::total_clicks} = 0
+
+# --- PŘÍKAZY ---
+
+command /clicker [<text>] [<text>]:
+    permission: clicker.admin
+    permission message: &c&lᴄʜʏʙᴀ &8| &fɴᴇᴍás ᴘʀáᴠᴏ!
+    trigger:
+        if arg-1 is not set:
+            send " "
+            send "{@prefix} &e&lɴáᴘᴏᴠěᴅᴀ"
+            send " &8• &f/clicker spawn &7- ᴠʏᴛᴠᴏří ᴍᴏʙᴀ"
+            send " &8• &f/clicker delete &7- sᴍᴀžᴇ ᴍᴏʙᴀ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ"
+            send " &8• &f/clicker move &7- ᴘřᴇsᴜɴᴇ ᴍᴏʙᴀ ᴋ ᴛᴏʙě"
+            send " &8• &f/clicker settype <entity> &7- ᴢᴍěɴí ᴛʏᴘ ᴍᴏʙᴀ"
+            send " &8• &f/clicker sethologram &7- ᴘřᴇsᴜɴᴇ ʜᴏʟᴏɢʀᴀᴍ ᴋ ᴛᴏʙě"
+            send " "
+            stop
+
+        if arg-1 is "spawn":
+            if {clicker::mob} is set:
+                if {clicker::mob} is alive:
+                    send "{@prefix} &cᴍᴏʙ ᴊɪž ᴇxɪsᴛᴜᴊᴇ! &7(/clicker delete pro smazání)"
+                    stop
+
+            spawn {clicker::type} at player
+            set {clicker::mob} to last spawned entity
+            set gravity of {clicker::mob} to off
+            set invulnerable of {clicker::mob} to true
+            set custom name of {clicker::mob} to "{@mob_name}"
+            set custom name visible of {clicker::mob} to true
+
+            # Spawn hologramů (Text Displays)
+            set {_loc1} to player
+            set {_loc1} to 2 meters above {_loc1}
+            set {_loc1} to 1.5 meters right of {_loc1}
+            spawn text display at {_loc1}
+            set {clicker::holo::stats} to last spawned entity
+
+            set {_loc2} to player
+            set {_loc2} to 2 meters above {_loc2}
+            set {_loc2} to 1.5 meters left of {_loc2}
+            spawn text display at {_loc2}
+            set {clicker::holo::rewards} to last spawned entity
+
+            updateHolograms()
+            send "{@prefix} &aᴍᴏʙ ʙʏʟ úspěšɴě ᴠʏᴛᴠᴏřᴇɴ!"
+
+        if arg-1 is "delete":
+            kill {clicker::mob}
+            kill {clicker::holo::stats}
+            kill {clicker::holo::rewards}
+            delete {clicker::mob}
+            delete {clicker::holo::stats}
+            delete {clicker::holo::rewards}
+            send "{@prefix} &cᴍᴏʙ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ ʙʏʟʏ sᴍᴀᴢáɴʏ!"
+
+        if arg-1 is "move":
+            teleport {clicker::mob} to player
+
+            set {_loc1} to player
+            set {_loc1} to 2 meters above {_loc1}
+            set {_loc1} to 1.5 meters right of {_loc1}
+            teleport {clicker::holo::stats} to {_loc1}
+
+            set {_loc2} to player
+            set {_loc2} to 2 meters above {_loc2}
+            set {_loc2} to 1.5 meters left of {_loc2}
+            teleport {clicker::holo::rewards} to {_loc2}
+
+            send "{@prefix} &aᴍᴏʙ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ ʙʏʟʏ ᴘřᴇsᴜɴᴜᴛʏ!"
+
+        if arg-1 is "settype":
+            if arg-2 is not set:
+                send "{@prefix} &cᴍᴜsíš ᴢᴀᴅᴀᴛ ᴛʏᴘ ᴍᴏʙᴀ! (např. pig, zombie, villager)"
+                stop
+            set {_type} to arg-2 parsed as entity type
+            if {_type} is not set:
+                send "{@prefix} &cɴᴇᴘʟᴀᴛɴý ᴛʏᴘ ᴍᴏʙᴀ!"
+                stop
+            set {clicker::type} to {_type}
+            if {clicker::mob} is set:
+                set {_loc} to location of {clicker::mob}
+                kill {clicker::mob}
+                spawn {clicker::type} at {_loc}
+                set {clicker::mob} to last spawned entity
+                set gravity of {clicker::mob} to off
+                set invulnerable of {clicker::mob} to true
+                set custom name of {clicker::mob} to "{@mob_name}"
+                set custom name visible of {clicker::mob} to true
+            send "{@prefix} &aᴛʏᴘ ᴍᴏʙᴀ ɴᴀsᴛᴀᴠᴇɴ ɴᴀ &e%arg-2%&a!"
+
+        if arg-1 is "sethologram":
+            set {_loc1} to player
+            set {_loc1} to 2 meters above {_loc1}
+            set {_loc1} to 1.5 meters right of {_loc1}
+            teleport {clicker::holo::stats} to {_loc1}
+
+            set {_loc2} to player
+            set {_loc2} to 2 meters above {_loc2}
+            set {_loc2} to 1.5 meters left of {_loc2}
+            teleport {clicker::holo::rewards} to {_loc2}
+
+            send "{@prefix} &aʜᴏʟᴏɢʀᴀᴍʏ ʙʏʟʏ ᴘřᴇsᴜɴᴜᴛʏ!"
+
+# --- LOGIKA KLIKÁNÍ ---
+
+on damage:
+    if victim is {clicker::mob}:
+        cancel event
+        clickLogic(attacker)
+
+on right click on entity:
+    if entity is {clicker::mob}:
+        cancel event
+        clickLogic(player)
+
+function clickLogic(p: player):
+    add 1 to {clicker::player_clicks::%uuid of {_p}%}
+    add 1 to {clicker::total_clicks}
+
+    # Peněžní odměna
+    execute console command "/money give %{_p}% {@reward_money}"
+
+    # Náhodné odměny
+    set {_rnd} to random number between 0 and 100
+
+    if {_rnd} <= {@chance_key}:
+        execute console command "/crate key give %{_p}% vote_klic 1"
+        send "{@prefix} &6&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &e&lᴠᴏᴛᴇ ᴋʟíč&f!" to {_p}
+    else if {_rnd} <= {@chance_diamond}:
+        give 1 diamond to {_p}
+        send "{@prefix} &b&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &bᴅɪᴀᴍᴀɴᴛ&f!" to {_p}
+    else if {_rnd} <= {@chance_gold}:
+        give 1 gold ingot to {_p}
+        send "{@prefix} &e&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &eᴢʟᴀᴛᴏ&f!" to {_p}
+    else if {_rnd} <= {@chance_iron}:
+        give 1 iron ingot to {_p}
+        send "{@prefix} &7&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &7žᴇʟᴇᴢᴏ&f!" to {_p}
+
+    # Anti-autoclicker (obhazování)
+    set {_v} to vector between {clicker::mob} and {_p}
+    if vector length of {_v} is 0:
+        set {_v} to vector(random number between -1 and 1, 0, random number between -1 and 1)
+    set vector length of {_v} to 0.5
+    set y of {_v} to 0.2
+    push {_p} {_v} at speed 0.8
+
+    updateHolograms()
+
+# --- HOLOGRAMY ---
+
+function updateHolograms():
+    # Omezení frekvence aktualizací (max jednou za 2 sekundy pro výkon)
+    set {_diff} to difference between {clicker::last_update} and now
+    if {_diff} is less than 2 seconds:
+        stop
+    set {clicker::last_update} to now
+
+    # Top 3 leaderboard
+    set {_top::*} to sorted indices of {clicker::player_clicks::*} in descending order
+
+    set {_line1} to "&6&lᴛᴏᴘ 3 ᴄʟɪᴄᴋᴇʀɪ"
+    set {_line2} to "&8&m----------------"
+
+    set {_count} to 1
+    loop {_top::*}:
+        set {_u} to loop-value
+        set {_name} to {_u} parsed as offline player
+        set {_val} to {clicker::player_clicks::%loop-value%}
+        set {_list::%{_count}%} to "&e%{_count}%. &f%{_name}% &7- &e%{_val}% ᴋʟɪᴋů"
+        add 1 to {_count}
+        if {_count} > 3:
+            stop loop
+
+    # Sestavení textu statistik bez ternárních operátorů
+    set {_stats} to "%{_line1}%%nl%%{_line2}%"
+    loop 3 times:
+        if {_list::%loop-number%} is set:
+            set {_stats} to "%{_stats}%%nl%%{_list::%loop-number%}%"
+        else:
+            set {_stats} to "%{_stats}%%nl%&8..."
+
+    set display text of {clicker::holo::stats} to formatted {_stats}
+
+    # Odměny hologram
+    set {_rew} to "&e&lᴍᴏžɴé ᴏᴅᴍěɴʏ%nl%&8&m----------------%nl%&f$1000 &7(100%%)%nl%&7žᴇʟᴇᴢᴏ &7({@chance_iron}%%)%nl%&eᴢʟᴀᴛᴏ &7({@chance_gold}%%)%nl%&bᴅɪᴀᴍᴀɴᴛ &7({@chance_diamond}%%)%nl%&6ᴠᴏᴛᴇ ᴋʟíč &7({@chance_key}%%)"
+    set display text of {clicker::holo::rewards} to formatted {_rew}
+
+# Inicializace při startu
+on load:
+    if {clicker::type} is not set:
+        set {clicker::type} to pig
