@@ -18,9 +18,23 @@ variables:
 
 # --- POMOCNÉ FUNKCE ---
 
-function getEntityByUUID(u: text) :: entity:
-    set {_e} to entity from uuid {_u}
-    return {_e}
+function cacheEntities():
+    delete {clicker::session::*}
+    if {clicker::location} is set:
+        loop entities in radius 10 around {clicker::location}:
+            set {_tags} to "%all tags of loop-entity%"
+            if {_tags} contains "clicker_mob":
+                set {clicker::session::mob} to loop-entity
+            else if {_tags} contains "clicker_h1":
+                set {clicker::session::h1} to loop-entity
+            else if {_tags} contains "clicker_h2":
+                set {clicker::session::h2} to loop-entity
+            else if {_tags} contains "clicker_h3":
+                set {clicker::session::h3} to loop-entity
+            else if {_tags} contains "clicker_h4":
+                set {clicker::session::h4} to loop-entity
+            else if {_tags} contains "clicker_h5":
+                set {clicker::session::h5} to loop-entity
 
 # --- PŘÍKAZY ---
 
@@ -35,16 +49,13 @@ command /clicker [<text>] [<text>]:
             send " &8• &f/clicker delete &7- sᴍᴀžᴇ ᴍᴏʙᴀ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ"
             send " &8• &f/clicker move &7- ᴘřᴇsᴜɴᴇ ᴍᴏʙᴀ ᴋ ᴛᴏʙě"
             send " &8• &f/clicker settype <entity> &7- ᴢᴍěɴí ᴛʏᴘ ᴍᴏʙᴀ"
-            send " &8• &f/clicker sethologram &7- ᴘřᴇsᴜɴᴇ ʜᴏʟᴏɢʀᴀᴍ ᴋ ᴛᴏʙě"
             send " "
             stop
 
         if arg-1 is "spawn":
-            set {_m} to getEntityByUUID({clicker::uuid::mob})
-            if {_m} is set:
-                if {_m} is alive:
-                    send "{@prefix} &cᴍᴏʙ ᴊɪž ᴇxɪsᴛᴜᴊᴇ! &7(/clicker delete pro smazání)"
-                    stop
+            if {clicker::location} is set:
+                send "{@prefix} &cᴍᴏʙ ᴊɪž ᴇxɪsᴛᴜᴊᴇ! &7(/clicker delete pro smazání)"
+                stop
 
             set {_t_str} to {clicker::type_str}
             if {_t_str} is not set:
@@ -53,104 +64,95 @@ command /clicker [<text>] [<text>]:
 
             spawn {_t} at player
             set {_mob} to last spawned entity
-            set {clicker::uuid::mob} to uuid of {_mob}
-            set gravity of {_mob} to off
-            execute console command "data merge entity %uuid of {_mob}% {Invulnerable:1b,CustomNameVisible:1b}"
+            set {clicker::location} to location of player
+
+            # Nastavení moba
+            execute console command "tag %uuid of {_mob}% add clicker_mob"
+            execute console command "data merge entity %uuid of {_mob}% {Invulnerable:1b,CustomNameVisible:1b,NoGravity:1b}"
             set custom name of {_mob} to "{@mob_name}"
 
-            # Spawn Hologramů (každý řádek je jeden Armor Stand pro multi-line efekt)
-            set {_loc} to location of player
-            add 3.0 to y-coord of {_loc}
-
-            # Header
-            spawn armor stand at {_loc}
-            set {clicker::uuid::h::1} to uuid of last spawned entity
-
-            # Top 1
-            subtract 0.3 from y-coord of {_loc}
-            spawn armor stand at {_loc}
-            set {clicker::uuid::h::2} to uuid of last spawned entity
-
-            # Top 2
-            subtract 0.3 from y-coord of {_loc}
-            spawn armor stand at {_loc}
-            set {clicker::uuid::h::3} to uuid of last spawned entity
-
-            # Top 3
-            subtract 0.3 from y-coord of {_loc}
-            spawn armor stand at {_loc}
-            set {clicker::uuid::h::4} to uuid of last spawned entity
-
-            # Rewards Info
-            subtract 0.6 from y-coord of {_loc}
-            spawn armor stand at {_loc}
-            set {clicker::uuid::h::5} to uuid of last spawned entity
-
-            # Nastavení všech Armor Standů na neviditelné Markery
-            loop 5 times:
-                set {_u} to {clicker::uuid::h::%loop-number%}
-                execute console command "data merge entity %{_u}% {Invisible:1b,Marker:1b,CustomNameVisible:1b,NoGravity:1b}"
-
-            updateHolograms()
-            send "{@prefix} &aᴍᴏʙ ʙʏʟ úspěšɴě ᴠʏᴛᴠᴏřᴇɴ!"
-
-        if arg-1 is "delete":
-            set {_m} to getEntityByUUID({clicker::uuid::mob})
-            if {_m} is set:
-                kill {_m}
-            loop 5 times:
-                set {_h} to getEntityByUUID({clicker::uuid::h::%loop-number%})
-                if {_h} is set:
-                    kill {_h}
-            delete {clicker::uuid::*}
-            send "{@prefix} &cᴍᴏʙ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ ʙʏʟʏ sᴍᴀᴢáɴʏ!"
-
-        if arg-1 is "move":
-            set {_m} to getEntityByUUID({clicker::uuid::mob})
-            if {_m} is not set:
-                send "{@prefix} &cᴍᴏʙ ɴᴇᴇxɪsᴛᴜᴊᴇ! &7(/clicker spawn)"
-                stop
-            teleport {_m} to player
-
+            # Spawn Hologramů
             set {_loc} to location of player
             add 3.0 to y-coord of {_loc}
 
             loop 5 times:
-                set {_h} to getEntityByUUID({clicker::uuid::h::%loop-number%})
-                if {_h} is set:
-                    teleport {_h} to {_loc}
+                spawn armor stand at {_loc}
+                set {_h} to last spawned entity
+                execute console command "tag %uuid of {_h}% add clicker_h%loop-number%"
+                execute console command "data merge entity %uuid of {_h}% {Invisible:1b,Marker:1b,CustomNameVisible:1b,NoGravity:1b}"
                 if loop-number is 4:
                     subtract 0.6 from y-coord of {_loc}
                 else:
                     subtract 0.3 from y-coord of {_loc}
 
+            cacheEntities()
+            updateHolograms()
+            send "{@prefix} &aᴍᴏʙ ʙʏʟ úspěšɴě ᴠʏᴛᴠᴏřᴇɴ!"
+
+        if arg-1 is "delete":
+            if {clicker::location} is not set:
+                send "{@prefix} &cɴᴇɴí ᴄᴏ ᴍᴀᴢᴀᴛ!"
+                stop
+
+            loop entities in radius 15 around {clicker::location}:
+                execute console command "tag %uuid of loop-entity% list" # Jen pro jistotu
+                if "%all tags of loop-entity%" contains "clicker_":
+                    kill loop-entity
+
+            delete {clicker::location}
+            send "{@prefix} &cᴍᴏʙ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ ʙʏʟʏ sᴍᴀᴢáɴʏ!"
+
+        if arg-1 is "move":
+            if {clicker::location} is not set:
+                send "{@prefix} &cᴍᴏʙ ɴᴇᴇxɪsᴛᴜᴊᴇ!"
+                stop
+
+            set {_old_loc} to {clicker::location}
+            set {clicker::location} to location of player
+
+            # Najdeme a teleportujeme moba
+            loop entities in radius 15 around {_old_loc}:
+                if "%all tags of loop-entity%" contains "clicker_mob":
+                    teleport loop-entity to {clicker::location}
+
+            # Teleportujeme hologramy
+            set {_hloc} to location of player
+            add 3.0 to y-coord of {_hloc}
+
+            loop 5 times:
+                set {_tag} to "clicker_h%loop-number%"
+                loop entities in radius 15 around {_old_loc}:
+                    if "%all tags of loop-entity%" contains {_tag}:
+                        teleport loop-entity to {_hloc}
+
+                if loop-number is 4:
+                    subtract 0.6 from y-coord of {_hloc}
+                else:
+                    subtract 0.3 from y-coord of {_hloc}
+
+            cacheEntities()
             send "{@prefix} &aᴍᴏʙ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ ʙʏʟʏ ᴘřᴇsᴜɴᴜᴛʏ!"
 
         if arg-1 is "settype":
             if arg-2 is not set:
-                send "{@prefix} &cᴍᴜsíš ᴢᴀᴅᴀᴛ ᴛʏᴘ ᴍᴏʙᴀ! (např. pig, zombie, villager)"
+                send "{@prefix} &cᴍᴜsíš ᴢᴀᴅᴀᴛ ᴛʏᴘ ᴍᴏʙᴀ!"
                 stop
             set {clicker::type_str} to arg-2
-
-            set {_m} to getEntityByUUID({clicker::uuid::mob})
-            if {_m} is set:
+            if {clicker::location} is set:
                 execute player command "clicker delete"
-                wait 2 ticks
+                wait 5 ticks
                 execute player command "clicker spawn"
             send "{@prefix} &aᴛʏᴘ ᴍᴏʙᴀ ɴᴀsᴛᴀᴠᴇɴ ɴᴀ &e%arg-2%&a!"
-
-        if arg-1 is "sethologram":
-            execute player command "clicker move"
 
 # --- LOGIKA KLIKÁNÍ ---
 
 on damage:
-    if uuid of victim is {clicker::uuid::mob}:
+    if "%all tags of victim%" contains "clicker_mob":
         cancel event
         clickLogic(attacker)
 
 on right click on entity:
-    if uuid of entity is {clicker::uuid::mob}:
+    if "%all tags of entity%" contains "clicker_mob":
         cancel event
         clickLogic(player)
 
@@ -158,70 +160,64 @@ function clickLogic(p: player):
     add 1 to {clicker::player_clicks::%uuid of {_p}%}
     add 1 to {clicker::total_clicks}
 
-    # Peněžní odměna
     execute console command "/money give %{_p}% {@reward_money}"
 
-    # Náhodné odměny
     set {_rnd} to random number between 0 and 100
-
     if {_rnd} <= {@chance_key}:
         execute console command "/crate key give %{_p}% vote_klic 1"
         send "{@prefix} &6&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &e&lᴠᴏᴛᴇ ᴋʟíč&f!" to {_p}
     else if {_rnd} <= ({@chance_key} + {@chance_diamond}):
         give 1 diamond to {_p}
-        send "{@prefix} &b&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &bᴅɪᴀᴍᴀɴᴛ&f!" to {_p}
     else if {_rnd} <= ({@chance_key} + {@chance_diamond} + {@chance_gold}):
         give 1 gold ingot to {_p}
-        send "{@prefix} &e&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &eᴢʟᴀᴛᴏ&f!" to {_p}
     else if {_rnd} <= ({@chance_key} + {@chance_diamond} + {@chance_gold} + {@chance_iron}):
         give 1 iron ingot to {_p}
-        send "{@prefix} &7&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &7žᴇʟᴇᴢᴏ&f!" to {_p}
 
-    # Anti-autoclicker (obhazování)
-    set {_m} to getEntityByUUID({clicker::uuid::mob})
-    if {_m} is set:
-        set {_v} to vector between {_m} and {_p}
-        if vector length of {_v} is 0:
-            set {_v} to vector(random number between -1 and 1, 0, random number between -1 and 1)
-        set vector length of {_v} to 0.5
-        set y of {_v} to 0.2
-        push {_p} {_v} at speed 0.8
+    # Anti-autoclicker
+    # Protože nemůžeme snadno získat moba bez UUID, odhodíme hráče pryč od středu klikání
+    set {_v} to vector between {clicker::location} and {_p}
+    if vector length of {_v} is 0:
+        set {_v} to vector(random number between -1 and 1, 0, random number between -1 and 1)
+    set vector length of {_v} to 0.5
+    set y of {_v} to 0.2
+    push {_p} {_v} at speed 0.8
 
     updateHolograms()
 
 # --- HOLOGRAMY ---
 
 function updateHolograms():
-    # Omezení frekvence aktualizací
     set {_diff} to difference between {clicker::last_update} and now
     if {_diff} is less than 2 seconds:
         stop
     set {clicker::last_update} to now
 
-    # Top 3 leaderboard
+    if {clicker::session::h1} is not set:
+        cacheEntities()
+
     set {_top::*} to sorted indices of {clicker::player_clicks::*} in descending order
 
-    set {_h1} to getEntityByUUID({clicker::uuid::h::1})
-    if {_h1} is set:
-        set custom name of {_h1} to "&6&lᴛᴏᴘ 3 ᴄʟɪᴄᴋᴇʀɪ"
+    if {clicker::session::h1} is set:
+        set custom name of {clicker::session::h1} to "&6&lᴛᴏᴘ 3 ᴄʟɪᴄᴋᴇʀɪ"
+    if {clicker::session::h2} is set:
+        setHoloLine({clicker::session::h2}, 1, {_top::1})
+    if {clicker::session::h3} is set:
+        setHoloLine({clicker::session::h3}, 2, {_top::2})
+    if {clicker::session::h4} is set:
+        setHoloLine({clicker::session::h4}, 3, {_top::3})
+    if {clicker::session::h5} is set:
+        set custom name of {clicker::session::h5} to "&e&lᴍᴏžɴé ᴏᴅᴍěɴʏ &7($1000, žᴇʟᴇᴢᴏ, ᴢʟᴀᴛᴏ, ᴅɪᴀ, ᴋʟíč)"
 
-    loop 3 times:
-        set {_u} to {_top::%loop-number%}
-        set {_h} to getEntityByUUID({clicker::uuid::h::%loop-number + 1%})
-        if {_h} is set:
-            if {_u} is set:
-                set {_name} to {_u} parsed as offline player
-                set {_val} to {clicker::player_clicks::%{_u}%}
-                set custom name of {_h} to "&e%loop-number%. &f%{_name}% &7- &e%{_val}%"
-            else:
-                set custom name of {_h} to "&8%loop-number%. ..."
+function setHoloLine(e: entity, rank: number, u: text):
+    if {_u} is set:
+        set {_p} to {_u} parsed as offline player
+        set {_val} to {clicker::player_clicks::%{_u}%}
+        set custom name of {_e} to "&e%{_rank}%. &f%{_p}% &7- &e%{_val}%"
+    else:
+        set custom name of {_e} to "&8%{_rank}%. ..."
 
-    # Odměny info
-    set {_h5} to getEntityByUUID({clicker::uuid::h::5})
-    if {_h5} is set:
-        set custom name of {_h5} to "&e&lᴍᴏžɴé ᴏᴅᴍěɴʏ &7($1000, žᴇʟᴇᴢᴏ, ᴢʟᴀᴛᴏ, ᴅɪᴀ, ᴋʟíč)"
-
-# Inicializace při startu
 on load:
+    delete {clicker::session::*}
+    cacheEntities()
     if {clicker::type_str} is not set:
         set {clicker::type_str} to "pig"
