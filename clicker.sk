@@ -58,35 +58,36 @@ command /clicker [<text>] [<text>]:
                 stop
 
             set {clicker::location} to player's location
-            set {_x} to x-coord of player
-            set {_y} to y-coord of player
-            set {_z} to z-coord of player
-            set {_world} to name of world of player
 
-            set {_t} to {clicker::type_str}
-            if {_t} is not set:
-                set {_t} to "skeleton"
+            # --- SKRIPT SPAWN (NEJKOMPATIBILNĚJŠÍ SE SKRIPTEM) ---
 
-            # --- SUMMON PŘES MINECRAFT PŘÍKAZY (NEJSPOLÉHLIVĚJŠÍ) ---
+            # 1. Mob (Skeleton by default)
+            set {_t_str} to {clicker::type_str}
+            if {_t_str} is not set:
+                set {_t_str} to "skeleton"
+            set {_t} to {_t_str} parsed as entity type
 
-            # 1. Mob
-            execute console command "/minecraft:execute in %{_world}% run minecraft:summon %{_t}% %{_x}% %{_y}% %{_z}% {Tags:[""clicker_mob""],Invulnerable:1b,NoAI:1b,PersistenceRequired:1b,CustomName:'{""text"":""{@mob_name}""}',CustomNameVisible:1b}"
+            spawn {_t} at {clicker::location}
+            set {_m} to last spawned entity
+            set custom name of {_m} to "{@mob_name}"
+            execute console command "tag %uuid of {_m}% add clicker_mob"
+            execute console command "data merge entity %uuid of {_m}% {Invulnerable:1b,NoAI:1b,PersistenceRequired:1b,CustomNameVisible:1b}"
 
             # 2. Hologramy (Armor Standy)
-            set {_hy} to {_y} + 3.0
-            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h1""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
+            set {_loc} to {clicker::location}
+            add 3.0 to y-coord of {_loc}
 
-            set {_hy} to {_hy} - 0.3
-            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h2""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
+            loop 5 times:
+                spawn armor stand at {_loc}
+                set {_h} to last spawned entity
+                set custom name of {_h} to "&r"
+                execute console command "tag %uuid of {_h}% add clicker_h%loop-number%"
+                execute console command "data merge entity %uuid of {_h}% {Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b}"
 
-            set {_hy} to {_hy} - 0.3
-            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h3""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
-
-            set {_hy} to {_hy} - 0.3
-            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h4""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
-
-            set {_hy} to {_hy} - 0.6
-            execute console command "/minecraft:execute in %{_world}% run minecraft:summon armor_stand %{_x}% %{_hy}% %{_z}% {Tags:[""clicker_h5""],Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{""text"":"" ""}'}"
+                if loop-number is 4:
+                    add -0.6 to y-coord of {_loc}
+                else:
+                    add -0.3 to y-coord of {_loc}
 
             wait 10 ticks
             cacheEntities()
@@ -102,7 +103,7 @@ command /clicker [<text>] [<text>]:
                 set {_tags::*} to scoreboard tags of loop-entity
                 loop {_tags::*}:
                     if loop-value-2 contains "clicker_":
-                        execute console command "/minecraft:kill %uuid of loop-entity%"
+                        kill loop-entity
 
             delete {clicker::location}
             delete {-clicker::session::*}
@@ -115,24 +116,26 @@ command /clicker [<text>] [<text>]:
 
             set {_old_loc} to {clicker::location}
             set {clicker::location} to player's location
-            set {_x} to x-coord of player
-            set {_y} to y-coord of player
-            set {_z} to z-coord of player
 
             loop all entities in radius 15 around {_old_loc}:
                 set {_tags::*} to scoreboard tags of loop-entity
                 if {_tags::*} contains "clicker_mob":
-                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y}% %{_z}%"
-                else if {_tags::*} contains "clicker_h1":
-                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 3.0% %{_z}%"
-                else if {_tags::*} contains "clicker_h2":
-                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 2.7% %{_z}%"
-                else if {_tags::*} contains "clicker_h3":
-                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 2.4% %{_z}%"
-                else if {_tags::*} contains "clicker_h4":
-                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 2.1% %{_z}%"
-                else if {_tags::*} contains "clicker_h5":
-                    execute console command "/minecraft:tp %uuid of loop-entity% %{_x}% %{_y} + 1.5% %{_z}%"
+                    teleport loop-entity to {clicker::location}
+
+            set {_hloc} to {clicker::location}
+            add 3.0 to y-coord of {_hloc}
+
+            loop 5 times:
+                set {_tag} to "clicker_h%loop-number%"
+                loop all entities in radius 15 around {_old_loc}:
+                    set {_tags::*} to scoreboard tags of loop-entity
+                    if {_tags::*} contains {_tag}:
+                        teleport loop-entity to {_hloc}
+
+                if loop-number is 4:
+                    add -0.6 to y-coord of {_hloc}
+                else:
+                    add -0.3 to y-coord of {_hloc}
 
             cacheEntities()
             send "{@prefix} &aᴍᴏʙ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ ʙʏʟʏ ᴘřᴇsᴜɴᴜᴛʏ!"
