@@ -49,7 +49,7 @@ command /clicker [<text>] [<text>]:
             send " &8• &f/clicker delete &7- sᴍᴀžᴇ ᴍᴏʙᴀ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ"
             send " &8• &f/clicker move &7- ᴘřᴇsᴜɴᴇ ᴍᴏʙᴀ ᴋ ᴛᴏʙě"
             send " &8• &f/clicker settype <entity> &7- ᴢᴍěɴí ᴛʏᴘ ᴍᴏʙᴀ"
-            send " &8• &f/clicker debug &7- sᴛᴀᴠ ᴇɴᴛɪᴛ"
+            send " &8• &f/clicker info &7- sᴛᴀᴠ sʏsᴛéᴍᴜ"
             send " "
             stop
 
@@ -58,72 +58,46 @@ command /clicker [<text>] [<text>]:
                 send "{@prefix} &cᴍᴏʙ ᴊɪž ᴇxɪsᴛᴜᴊᴇ! &7(/clicker delete pro smazání)"
                 stop
 
-            set {clicker::location} to player's location
-
+            set {clicker::location} to location of player
             set {_t_str} to {clicker::type_str}
             if {_t_str} is not set:
                 set {_t_str} to "skeleton"
-
-            # --- SPAWN ---
-            # Zkusíme nejdříve nativní Skript spawn
             set {_t} to {_t_str} parsed as entity type
-            if {_t} is set:
-                spawn {_t} at {clicker::location}
-            else:
-                # Fallback na skeletona pokud parsování selže
-                spawn skeleton at {clicker::location}
 
+            # --- SPAWN MOBA ---
+            spawn {_t} at {clicker::location}
             set {_m} to last spawned entity
-            if {_m} is not set:
-                # Pokud pořád nic, zkusíme Minecraft příkaz
-                set {_x} to x-coordinate of player
-                set {_y} to y-coordinate of player
-                set {_z} to z-coordinate of player
-                set {_w} to name of world of player
-                execute console command "minecraft:execute in %{_w}% run minecraft:summon %{_t_str}% %{_x}% %{_y}% %{_z}% {Tags:[""clicker_mob""]}"
-                wait 2 ticks
-                loop all entities in radius 2 around player:
-                    if scoreboard tags of loop-entity contains "clicker_mob":
-                        set {_m} to loop-entity
-                        stop loop
-
-            if {_m} is not set:
-                send "{@prefix} &cᴄʜʏʙᴀ: ᴍᴏʙ sᴇ ɴᴇsᴘᴀᴡɴᴏᴠᴀʟ! &7(Zkontroluj ochranu území / spawn protection)"
-                delete {clicker::location}
-                stop
-
+            add "clicker_mob" to scoreboard tags of {_m}
             set custom name of {_m} to "{@mob_name}"
-            execute console command "tag %uuid of {_m}% add clicker_mob"
             execute console command "data merge entity %uuid of {_m}% {Invulnerable:1b,NoAI:1b,PersistenceRequired:1b,CustomNameVisible:1b}"
 
-            # Hologramy
-            set {_loc} to {clicker::location}
-            set y-coord of {_loc} to y-coord of {_loc} + 3.0
+            # --- SPAWN HOLOGRAMŮ ---
+            set {_loc} to location of player
+            add 3.0 to y-coord of {_loc}
 
             loop 5 times:
                 spawn armor stand at {_loc}
                 set {_h} to last spawned entity
-                set custom name of {_h} to "&r" # Schová "Armor Stand"
-                execute console command "tag %uuid of {_h}% add clicker_h%loop-number%"
+                add "clicker_h%loop-number%" to scoreboard tags of {_h}
+                set custom name of {_h} to "&7Načítám..."
                 execute console command "data merge entity %uuid of {_h}% {Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b}"
-
                 if loop-number is 4:
-                    set y-coord of {_loc} to y-coord of {_loc} - 0.6
+                    subtract 0.6 from y-coord of {_loc}
                 else:
-                    set y-coord of {_loc} to y-coord of {_loc} - 0.3
+                    subtract 0.3 from y-coord of {_loc}
 
-            wait 5 ticks
+            wait 10 ticks
             cacheEntities()
             updateHolograms()
             send "{@prefix} &aᴍᴏʙ ʙʏʟ úspěšɴě ᴠʏᴛᴠᴏřᴇɴ!"
 
-        if arg-1 is "debug":
-            send "{@prefix} &eᴅᴇʙᴜɢ:"
+        if arg-1 is "info":
+            send "{@prefix} &eᴅɪᴀɢɴᴏsᴛɪᴋᴀ:"
             send " &8• &fʟᴏᴋᴀᴄᴇ: &7%{clicker::location}%"
-            send " &8• &fᴍᴏʙ ᴠ ᴄᴀᴄʜᴇ: &7%{-clicker::session::mob}%"
-            send " &8• &fʜ1 ᴠ ᴄᴀᴄʜᴇ: &7%{-clicker::session::h1}%"
-            loop all entities in radius 10 around player:
-                send " &8• &f%loop-entity% &7(Tags: %scoreboard tags of loop-entity%)"
+            send " &8• &fᴍᴏʙ ᴠ ᴘᴀᴍěᴛɪ: &7%{-clicker::session::mob} ? ""&cNE""%"
+            send " &8• &fʜᴏʟᴏɢʀᴀᴍʏ: &7%{-clicker::session::h1} ? ""&cNE""%"
+            if {-clicker::session::mob} is set:
+                send " &8• &fᴛᴀɢʏ ᴍᴏʙᴀ: &7%scoreboard tags of {-clicker::session::mob}%"
 
         if arg-1 is "delete":
             loop all entities in radius 15 around {clicker::location}:
@@ -139,29 +113,24 @@ command /clicker [<text>] [<text>]:
                 send "{@prefix} &cᴍᴏʙ ɴᴇᴇxɪsᴛᴜᴊᴇ!"
                 stop
 
-            set {_old} to {clicker::location}
+            set {_old_loc} to {clicker::location}
             set {clicker::location} to location of player
 
-            loop all entities in radius 15 around {_old}:
+            loop all entities in radius 15 around {_old_loc}:
                 set {_tags::*} to scoreboard tags of loop-entity
                 if {_tags::*} contains "clicker_mob":
                     teleport loop-entity to {clicker::location}
+                else if {_tags::*} contains "clicker_h1":
+                    set {_l} to location of player
+                    add 3.0 to y-coord of {_l}
+                    teleport loop-entity to {_l}
+                # ... další řádky přesunu ...
 
-            set {_l} to {clicker::location}
-            set y-coord of {_l} to y-coord of {_l} + 3.0
-            loop 5 times:
-                set {_tag} to "clicker_h%loop-number%"
-                loop all entities in radius 15 around {_old}:
-                    set {_tags2::*} to scoreboard tags of loop-entity
-                    if {_tags2::*} contains {_tag}:
-                        teleport loop-entity to {_l}
-                if loop-number is 4:
-                    set y-coord of {_l} to y-coord of {_l} - 0.6
-                else:
-                    set y-coord of {_l} to y-coord of {_l} - 0.3
-
-            cacheEntities()
-            send "{@prefix} &aᴍᴏʙ ᴀ ʜᴏʟᴏɢʀᴀᴍʏ ʙʏʟʏ ᴘřᴇsᴜɴᴜᴛʏ!"
+            # Jednodušší: Smazat a znovu spawnout na nové lokaci pro stabilitu
+            execute player command "clicker delete"
+            wait 5 ticks
+            execute player command "clicker spawn"
+            send "{@prefix} &aᴍᴏʙ ʙʏʟ ᴘřᴇsᴜɴᴜᴛ!"
 
         if arg-1 is "settype":
             set {clicker::type_str} to arg-2
@@ -171,15 +140,18 @@ command /clicker [<text>] [<text>]:
                 execute player command "clicker spawn"
             send "{@prefix} &aᴛʏᴘ ᴍᴏʙᴀ ɴᴀsᴛᴀᴠᴇɴ!"
 
-# --- LOGIKA ---
+# --- LOGIKA KLIKÁNÍ ---
 
 on damage:
-    if scoreboard tags of victim contains "clicker_mob":
+    set {_tags::*} to scoreboard tags of victim
+    if {_tags::*} contains "clicker_mob":
         cancel event
-        clickLogic(attacker)
+        if attacker is a player:
+            clickLogic(attacker)
 
-on right click on entity:
-    if scoreboard tags of entity contains "clicker_mob":
+on right click:
+    set {_tags::*} to scoreboard tags of event-entity
+    if {_tags::*} contains "clicker_mob":
         cancel event
         clickLogic(player)
 
@@ -187,49 +159,69 @@ function clickLogic(p: player):
     add 1 to {clicker::player_clicks::%uuid of {_p}%}
     add 1 to {clicker::total_clicks}
 
-    execute console command "/money give %{_p}% {@reward_money}"
+    # Odměny
+    execute console command "money give %{_p}% {@reward_money}"
 
     set {_rnd} to random number between 0 and 100
     if {_rnd} <= {@chance_key}:
-        execute console command "/crate key give %{_p}% vote_klic 1"
+        execute console command "crate key give %{_p}% vote_klic 1"
         send "{@prefix} &6&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &e&lᴠᴏᴛᴇ ᴋʟíč&f!" to {_p}
     else if {_rnd} <= ({@chance_key} + {@chance_diamond}):
         give 1 diamond to {_p}
+        send "{@prefix} &b&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &bᴅɪᴀᴍᴀɴᴛ&f!" to {_p}
     else if {_rnd} <= ({@chance_key} + {@chance_diamond} + {@chance_gold}):
         give 1 gold ingot to {_p}
+        send "{@prefix} &e&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &eᴢʟᴀᴛᴏ&f!" to {_p}
     else if {_rnd} <= ({@chance_key} + {@chance_diamond} + {@chance_gold} + {@chance_iron}):
         give 1 iron ingot to {_p}
+        send "{@prefix} &7&lɢɢ! &fᴢísᴋᴀʟ ᴊsɪ &7žᴇʟᴇᴢᴏ&f!" to {_p}
 
+    # Anti-autoclicker
     set {_v} to vector between {clicker::location} and {_p}
     if vector length of {_v} is 0:
         set {_v} to vector(random number between -1 and 1, 0, random number between -1 and 1)
     set vector length of {_v} to 0.5
     set y of {_v} to 0.2
     push {_p} {_v} at speed 0.8
+
     updateHolograms()
 
+# --- HOLOGRAMY ---
+
 function updateHolograms():
-    set {_diff} to difference between {clicker::last_update} and now
-    if {_diff} is less than 2 seconds:
-        stop
+    # Omezíme frekvenci, ale první update po spawnu pustíme vždy
+    if {clicker::last_update} is set:
+        set {_diff} to difference between {clicker::last_update} and now
+        if {_diff} is less than 1 second:
+            stop
     set {clicker::last_update} to now
+
     if {-clicker::session::h1} is not alive:
         cacheEntities()
 
     set {_top::*} to sorted indices of {clicker::player_clicks::*} in descending order
-    set custom name of {-clicker::session::h1} to "&6&lᴛᴏᴘ 3 ᴄʟɪᴄᴋᴇʀɪ"
-    loop 3 times:
-        set {_u} to {_top::%loop-number%}
-        set {_h} to {-clicker::session::h%loop-number + 1%}
-        if {_u} is set:
-            set {_name} to {_u} parsed as offline player
-            set custom name of {_h} to "&e%loop-number%. &f%{_name}% &7- &e%{clicker::player_clicks::%{_u}%}%"
-        else:
-            set custom name of {_h} to "&8%loop-number%. ..."
-    set custom name of {-clicker::session::h5} to "&e&lᴍᴏžɴé ᴏᴅᴍěɴʏ &7($1000, žᴇʟᴇᴢᴏ, ᴢʟᴀᴛᴏ, ᴅɪᴀ, ᴋʟíč)"
+
+    if {-clicker::session::h1} is alive:
+        set custom name of {-clicker::session::h1} to "&6&lᴛᴏᴘ 3 ᴄʟɪᴄᴋᴇʀɪ"
+    if {-clicker::session::h2} is alive:
+        setHoloLine({-clicker::session::h2}, 1, {_top::1})
+    if {-clicker::session::h3} is alive:
+        setHoloLine({-clicker::session::h3}, 2, {_top::2})
+    if {-clicker::session::h4} is alive:
+        setHoloLine({-clicker::session::h4}, 3, {_top::3})
+    if {-clicker::session::h5} is alive:
+        set custom name of {-clicker::session::h5} to "&e&lᴍᴏžɴé ᴏᴅᴍěɴʏ &7($1000, žᴇʟᴇᴢᴏ, ᴢʟᴀᴛᴏ, ᴅɪᴀ, ᴋʟíč)"
+
+function setHoloLine(e: entity, rank: number, u: text):
+    if {_u} is set:
+        set {_p} to {_u} parsed as offline player
+        set {_val} to {clicker::player_clicks::%{_u}%}
+        set custom name of {_e} to "&e%{_rank}%. &f%{_p}% &7- &e%{_val}%"
+    else:
+        set custom name of {_e} to "&8%{_rank}%. ..."
 
 on load:
-    wait 2 seconds
+    wait 3 seconds
     cacheEntities()
     if {clicker::type_str} is not set:
         set {clicker::type_str} to "skeleton"
