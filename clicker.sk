@@ -65,7 +65,7 @@ command /clicker [<text>] [<text>]:
 
             set {_t} to {clicker::type_str}
             if {_t} is not set:
-                set {_t} to "pig"
+                set {_t} to "skeleton"
 
             # Spawn Moba a Hologramů přes SUMMON (nejsvobnější cesta)
             execute console command "summon %{_t}% %{_x}% %{_y}% %{_z}% {Tags:[""clicker_mob""],Invulnerable:1b,NoAI:1b,PersistenceRequired:1b,CustomName:'{""text"":""{@mob_name}""}',CustomNameVisible:1b}"
@@ -230,4 +230,4 @@ on load:
     wait 2 seconds
     cacheEntities()
     if {clicker::type_str} is not set:
-        set {clicker::type_str} to "pig"
+        set {clicker::type_str} to "skeleton"
