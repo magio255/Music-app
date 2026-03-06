@@ -1,5 +1,8 @@
 # Required Addons: SkQuery (RAM expressions), skript-reflect (Garbage Collection)
 
+import:
+    java.lang.Runtime
+
 options:
     # --- Konfigurace ---
     perm: admin.ram
@@ -10,6 +13,11 @@ options:
 
     # Výchozí intenzita (low, normal, high)
     intensity: normal
+
+    # Funkce - Zapnout/Vypnout (true/false)
+    enable-chunks: true
+    enable-entities: true
+    enable-gc: true
 
     # Chunk unloading radius (v chuncích od hráče)
     chunk-radius: 4
@@ -25,7 +33,10 @@ options:
 
 variables:
     {ram::auto_clean} = true
-    {ram::last_clean} = now
+    {ram::last_clean} = "ɴɪᴋᴅʏ"
+
+on load:
+    set {ram::last_clean} to now
 
 command /ram [<text>] [<text>]:
     permission: {@perm}
@@ -87,22 +98,24 @@ function ram_clean(intensity: text):
     set {ram::last_clean} to now
 
     # 1. Garbage Collection (skript-reflect)
-    set {_runtime} to java.lang.Runtime.getRuntime()
-    if {_intensity} is "low":
-        {_runtime}.gc()
-    else if {_intensity} is "high":
-        loop 3 times:
+    if {@enable-gc} is true:
+        set {_runtime} to Runtime.getRuntime()
+        if {_intensity} is "low":
             {_runtime}.gc()
-    else: # normal
-        {_runtime}.gc()
-        wait 1 tick
-        {_runtime}.gc()
+        else if {_intensity} is "high":
+            {_runtime}.gc()
+            wait 1 tick
+            {_runtime}.gc()
+        else: # normal
+            {_runtime}.gc()
 
     # 2. Chunk Unloading
-    unload_unused_chunks()
+    if {@enable-chunks} is true:
+        unload_unused_chunks()
 
     # 3. Entity Cleanup
-    cleanup_entities()
+    if {@enable-entities} is true:
+        cleanup_entities()
 
 # Automatický plánovač
 every {@interval} minutes:
@@ -113,7 +126,13 @@ every {@interval} minutes:
 function unload_unused_chunks():
     loop all worlds:
         set {_world} to loop-world
-        set {_player_locs::*} to all players where [input's world is {_world}]'s location
+        clear {_player_locs::*}
+        loop all players:
+            if loop-player's world is {_world}:
+                add location of loop-player to {_player_locs::*}
+
+        # Omezení počtu chunků na jeden běh pro snížení lagu
+        set {_count} to 0
         loop loaded chunks of {_world}:
             set {_chunk} to loop-value-2
             set {_chunk_loc} to location of {_chunk}
@@ -124,16 +143,20 @@ function unload_unused_chunks():
                     stop loop
             if {_unload} is true:
                 unload {_chunk}
+                add 1 to {_count}
+                if {_count} > 50: # Limit na 50 chunků v jednom tiků pro ochranu TPS
+                    wait 1 tick
+                    set {_count} to 0
 
 function cleanup_entities():
     loop all players:
         set {_p} to loop-player
         set {_count} to 0
         loop entities in radius 32 of {_p}:
-            if loop-entity is not a player:
+            if loop-entity-2 is not a player:
                 add 1 to {_count}
                 if {_count} > {@entity-limit}:
-                    delete loop-entity
+                    delete loop-entity-2
 
 function ram_open_gui(p: player):
     set {_gui} to chest inventory with 3 rows named "&8ʀᴀᴍ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ"
@@ -147,7 +170,7 @@ function ram_open_gui(p: player):
     set {_free} to free ram
     set {_total} to total ram
     set {_used} to {_total} - {_free}
-    set slot 13 of {_gui} to paper named "&bꜱᴛᴀᴠ ꜱʏꜱᴛéᴍᴜ" with lore "&7ᴠʏᴜžɪᴛᴏ: &f%{_used}% ᴍʙ", "&7ᴠᴏʟɴᴏ: &f%{_free}% ᴍʙ", "&7ᴄᴇʟᴋᴇᴍ: &f%{_total}% ᴍʙ", "", "&eᴋʟɪᴋɴɪ ᴘʀᴏ ɪɴꜰᴏ ᴅᴏ ᴄʜᴀᴛᴜ"
+    set slot 13 of {_gui} to paper named "&bꜱᴛᴀᴠ ꜱʏꜱᴛéᴍᴜ" with lore "&7ᴠʏᴜžɪᴛᴏ: &f%{_used}% ᴍʙ" and "&7ᴠᴏʟɴᴏ: &f%{_free}% ᴍʙ" and "&7ᴄᴇʟᴋᴇᴍ: &f%{_total}% ᴍʙ" and "" and "&eᴋʟɪᴋɴɪ ᴘʀᴏ ɪɴꜰᴏ ᴅᴏ ᴄʜᴀᴛᴜ"
 
     # Čištění - Různé intenzity
     set slot 10 of {_gui} to green dye named "&aɴíᴢᴋá ɪɴᴛᴇɴᴢɪᴛᴀ" with lore "&7ʀʏᴄʜʟé čɪšᴛěɴí ᴘᴀᴍěᴛɪ."
@@ -156,10 +179,10 @@ function ram_open_gui(p: player):
 
     # Funkce
     set slot 15 of {_gui} to grass block named "&6ᴠʏčɪꜱᴛɪᴛ ᴄʜᴜɴᴋʏ" with lore "&7ᴜɴʟᴏᴀᴅ ɴᴇᴘᴏᴜžíᴠᴀɴýᴄʜ ᴄʜᴜɴᴋů."
-    set slot 16 of {_gui} to skeleton egg named "&eᴠʏčɪꜱᴛɪᴛ ᴇɴᴛɪᴛʏ" with lore "&7ᴏᴅꜱᴛʀᴀɴěɴí ᴘřᴇʙʏᴛᴇčɴýᴄʜ ᴇɴᴛɪᴛ."
+    set slot 16 of {_gui} to skeleton spawn egg named "&eᴠʏčɪꜱᴛɪᴛ ᴇɴᴛɪᴛʏ" with lore "&7ᴏᴅꜱᴛʀᴀɴěɴí ᴘřᴇʙʏᴛᴇčɴýᴄʜ ᴇɴᴛɪᴛ."
 
     # Info Kniha
-    set slot 26 of {_gui} to book named "&fɪɴꜰᴏʀᴍᴀᴄᴇ ᴏ čɪšᴛěɴí" with lore "&7ɴíᴢᴋá: &fʀʏᴄʜʟý ɢᴄ", "&7ɴᴏʀᴍáʟɴí: &fꜱᴛᴀɴᴅᴀʀᴅɴí ɢᴄ (2x)", "&7ᴠʏꜱᴏᴋá: &fᴀɢʀᴇꜱɪᴠɴí ɢᴄ (3x)", "&7ᴄʜᴜɴᴋʏ: &fᴜɴʟᴏᴀᴅ ᴠᴢᴅáʟᴇɴýᴄʜ ᴄʜᴜɴᴋů", "&7ᴇɴᴛɪᴛʏ: &fᴏᴅꜱᴛʀᴀɴěɴí ᴍᴏʙů ɴᴀᴅ ʟɪᴍɪᴛ"
+    set slot 26 of {_gui} to book named "&fɪɴꜰᴏʀᴍᴀᴄᴇ ᴏ čɪšᴛěɴí" with lore "&7ɴíᴢᴋá: &fʀʏᴄʜʟý ɢᴄ" and "&7ɴᴏʀᴍáʟɴí: &fꜱᴛᴀɴᴅᴀʀᴅɴí ɢᴄ (2x)" and "&7ᴠʏꜱᴏᴋá: &fᴀɢʀᴇꜱɪᴠɴí ɢᴄ (3x)" and "&7ᴄʜᴜɴᴋʏ: &fᴜɴʟᴏᴀᴅ ᴠᴢᴅáʟᴇɴýᴄʜ ᴄʜᴜɴᴋů" and "&7ᴇɴᴛɪᴛʏ: &fᴏᴅꜱᴛʀᴀɴěɴí ᴍᴏʙů ɴᴀᴅ ʟɪᴍɪᴛ"
 
     open {_gui} to {_p}
 
