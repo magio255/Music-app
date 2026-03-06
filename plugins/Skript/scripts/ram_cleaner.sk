@@ -158,6 +158,9 @@ function ram_open_gui(p: player):
     set slot 15 of {_gui} to grass block named "&6ᴠʏčɪꜱᴛɪᴛ ᴄʜᴜɴᴋʏ" with lore "&7ᴜɴʟᴏᴀᴅ ɴᴇᴘᴏᴜžíᴠᴀɴýᴄʜ ᴄʜᴜɴᴋů."
     set slot 16 of {_gui} to skeleton egg named "&eᴠʏčɪꜱᴛɪᴛ ᴇɴᴛɪᴛʏ" with lore "&7ᴏᴅꜱᴛʀᴀɴěɴí ᴘřᴇʙʏᴛᴇčɴýᴄʜ ᴇɴᴛɪᴛ."
 
+    # Info Kniha
+    set slot 26 of {_gui} to book named "&fɪɴꜰᴏʀᴍᴀᴄᴇ ᴏ čɪšᴛěɴí" with lore "&7ɴíᴢᴋá: &fʀʏᴄʜʟý ɢᴄ", "&7ɴᴏʀᴍáʟɴí: &fꜱᴛᴀɴᴅᴀʀᴅɴí ɢᴄ (2x)", "&7ᴠʏꜱᴏᴋá: &fᴀɢʀᴇꜱɪᴠɴí ɢᴄ (3x)", "&7ᴄʜᴜɴᴋʏ: &fᴜɴʟᴏᴀᴅ ᴠᴢᴅáʟᴇɴýᴄʜ ᴄʜᴜɴᴋů", "&7ᴇɴᴛɪᴛʏ: &fᴏᴅꜱᴛʀᴀɴěɴí ᴍᴏʙů ɴᴀᴅ ʟɪᴍɪᴛ"
+
     open {_gui} to {_p}
 
 on inventory click:
