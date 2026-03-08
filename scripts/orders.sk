@@ -1,0 +1,294 @@
+options:
+    prefix: &6&lᴢᴀᴋáᴢᴋʏ &8»&f
+    currency: ᴍᴏɴᴇʏ
+
+function toSmallCaps(t: text) :: text:
+    set {_t} to {_t}.toLowerCase()
+    replace all "a" with "ᴀ" in {_t}
+    replace all "b" with "ʙ" in {_t}
+    replace all "c" with "ᴄ" in {_t}
+    replace all "d" with "ᴅ" in {_t}
+    replace all "e" with "ᴇ" in {_t}
+    replace all "f" with "ꜰ" in {_t}
+    replace all "g" with "ɢ" in {_t}
+    replace all "h" with "ʜ" in {_t}
+    replace all "i" with "ɪ" in {_t}
+    replace all "j" with "ᴊ" in {_t}
+    replace all "k" with "ᴋ" in {_t}
+    replace all "l" with "ʟ" in {_t}
+    replace all "m" with "ᴍ" in {_t}
+    replace all "n" with "ɴ" in {_t}
+    replace all "o" with "ᴏ" in {_t}
+    replace all "p" with "ᴘ" in {_t}
+    replace all "q" with "ǫ" in {_t}
+    replace all "r" with "ʀ" in {_t}
+    replace all "s" with "ꜱ" in {_t}
+    replace all "t" with "ᴛ" in {_t}
+    replace all "u" with "ᴜ" in {_t}
+    replace all "v" with "ᴠ" in {_t}
+    replace all "w" with "ᴡ" in {_t}
+    replace all "x" with "x" in {_t}
+    replace all "y" with "ʏ" in {_t}
+    replace all "z" with "ᴢ" in {_t}
+    return {_t}
+
+on script load:
+    send "{@prefix} ꜱʏꜱᴛéᴍ ɴᴀᴄᴛᴇɴ!" to console
+
+every 1 hour:
+    loop {orders::list::*}:
+        set {_ts} to {orders::list::%loop-index%::timestamp}
+        if difference between {_ts} and now > 7 days:
+            set {_buyer} to {orders::list::%loop-index%::buyer}
+            set {_price} to {orders::list::%loop-index%::price}
+            set {_buyer_p} to {_buyer} parsed as offline player
+            add {_price} to balance of {_buyer_p}
+            delete {orders::list::%loop-index%::*}
+            delete {orders::list::%loop-index%}
+
+command /orders [<text>]:
+    aliases: /zakazky, /order
+    trigger:
+        openMarketplace(player, 0)
+
+function openMarketplace(p: player, page: number):
+    set {_uuid} to uuid of {_p}
+    create a gui with virtual chest inventory with 6 rows named "ᴛʀžɪšᴛě ᴢᴀᴋáᴢᴇᴋ":
+        # Background
+        fill gui with gray stained glass pane named " "
+
+        # Navigation & Actions
+        set {_start} to {_page} * 45
+        set {_count} to 0
+        set {_slot} to 0
+
+        loop {orders::list::*}:
+            if {_count} >= {_start}:
+                if {_slot} < 45:
+                    set {_id} to loop-index
+                    set {_item} to {orders::list::%{_id}%::item}
+                    set {_amt} to {orders::list::%{_id}%::amount}
+                    set {_price} to {orders::list::%{_id}%::price}
+                    set {_buyer} to {orders::list::%{_id}%::buyer}
+                    set {_buyer_name} to {orders::list::%{_id}%::buyer_name}
+
+                    set {_lore} to "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴋᴜᴘᴜᴊíᴄí: &e%{_buyer_name}%%nl%&8» &fᴘᴏʟᴏžᴋᴀ: &e%toSmallCaps("%type of {_item}%")%%nl%&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%%nl%&8» &fᴄᴇɴᴀ ᴢᴀ ᴋᴜꜱ: &e%{_price} / {_amt}% {@currency}%nl%&8» &fᴄᴇʟᴋᴏᴠá ᴄᴇɴᴀ: &e%{_price}% {@currency}%nl%%nl%&e&lᴄʟɪᴄᴋ &8» &fᴘʟɴɪᴛ ᴢᴀᴋáᴢᴋᴜ"
+
+                    make gui {_slot} with {_item} with lore {_lore}:
+                        fillOrder({_p}, {_id})
+                    add 1 to {_slot}
+            add 1 to {_count}
+            if {_slot} >= 45:
+                stop loop
+
+        # Pagination
+        if {_page} > 0:
+            make gui 45 with arrow named "&eᴘředᴄʜᴏᴢí ꜱᴛʀáɴᴋᴀ":
+                openMarketplace({_p}, {_page} - 1)
+        else:
+            make gui 45 with gray stained glass pane named " "
+
+        if size of {orders::list::*} > ({_page} + 1) * 45:
+            make gui 53 with arrow named "&eᴅᴀʟší ꜱᴛʀáɴᴋᴀ":
+                openMarketplace({_p}, {_page} + 1)
+        else:
+            make gui 53 with gray stained glass pane named " "
+
+        # Action Buttons
+        make gui 49 with emerald block named "&a&lᴠʏᴛᴠᴏřɪᴛ ᴢᴀᴋáᴢᴋᴜ" with lore "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴋʟɪᴋɴɪ ᴘʀᴏ ᴠʏᴛᴠᴏřᴇɴí%nl%&8» &fɴᴏᴠé ᴘᴏᴘᴛáᴠᴋʏ":
+            createOrderStep1({_p})
+
+        make gui 50 with chest named "&6&lᴍᴏᴊᴇ ᴢáꜱᴏʙʏ" with lore "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴢᴅᴇ ɴᴀᴊᴅᴇš ꜱᴠᴏᴊᴇ%nl%&8» &fᴅᴏᴅᴀɴé ᴘᴏʟᴏžᴋʏ":
+            openStash({_p})
+
+        make gui 48 with book named "&b&lᴍᴏᴊᴇ ᴢᴀᴋáᴢᴋʏ" with lore "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fꜱᴘʀáᴠᴀ ᴛᴠʏᴄʜ%nl%&8» &fᴀᴋᴛɪᴠɴíᴄʜ ᴢᴀᴋáᴢᴇᴋ":
+            openMyOrders({_p})
+
+    open last gui to {_p}
+
+function openMyOrders(p: player):
+    set {_uuid} to uuid of {_p}
+    create a gui with virtual chest inventory with 6 rows named "ᴍᴏᴊᴇ ᴢᴀᴋáᴢᴋʏ":
+        fill gui with gray stained glass pane named " "
+
+        set {_slot} to 0
+        loop {orders::list::*}:
+            if {orders::list::%loop-index%::buyer} is {_uuid}:
+                set {_id} to loop-index
+                set {_item} to {orders::list::%{_id}%::item}
+                set {_amt} to {orders::list::%{_id}%::amount}
+                set {_price} to {orders::list::%{_id}%::price}
+
+                set {_lore} to "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴘᴏʟᴏžᴋᴀ: &e%toSmallCaps("%type of {_item}%")%%nl%&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%%nl%&8» &fᴄᴇʟᴋᴏᴠá ᴄᴇɴᴀ: &e%{_price}% {@currency}%nl%%nl%&c&lᴄʟɪᴄᴋ &8» &fᴢʀᴜšɪᴛ ᴢᴀᴋáᴢᴋᴜ"
+
+                make gui {_slot} with {_item} with lore {_lore}:
+                    if {orders::list::%{_id}%} is not set:
+                        send "{@prefix} &cᴛᴀᴛᴏ ᴢᴀᴋáᴢᴋᴀ ᴊɪž ɴᴇᴇxɪꜱᴛᴜᴊᴇ!" to {_p}
+                        openMyOrders({_p})
+                        stop
+                    add {orders::list::%{_id}%::price} to {_p}'s balance
+                    delete {orders::list::%{_id}%::*}
+                    delete {orders::list::%{_id}%}
+                    send "{@prefix} &cᴢᴀᴋáᴢᴋᴀ ᴢʀᴜšᴇɴᴀ, ᴘᴇɴíᴢᴇ ᴠʀáᴄᴇɴʏ." to {_p}
+                    openMyOrders({_p})
+                add 1 to {_slot}
+                if {_slot} >= 45:
+                    stop loop
+
+        make gui 49 with arrow named "&eᴢᴘěᴛ":
+            openMarketplace({_p}, 0)
+
+    open last gui to {_p}
+
+function openStash(p: player):
+    set {_uuid} to uuid of {_p}
+    create a gui with virtual chest inventory with 6 rows named "ᴍᴏᴊᴇ ᴢáꜱᴏʙʏ":
+        fill gui with gray stained glass pane named " "
+
+        set {_slot} to 0
+        loop {orders::stash::%{_uuid}%::*}:
+            set {_item} to loop-value
+            make gui {_slot} with {_item} with lore "&e&lᴄʟɪᴄᴋ &8» &fᴠʏʙʀᴀᴛ ᴘředᴍěᴛ":
+                if {_p} has enough space for {_item}:
+                    give {_item} to {_p}
+                    delete {orders::stash::%{_uuid}%::%loop-index%}
+                    openStash({_p})
+                else:
+                    send "{@prefix} &cᴘʟɴý ɪɴᴠᴇɴᴛář!" to {_p}
+            add 1 to {_slot}
+            if {_slot} >= 45:
+                stop loop
+
+        make gui 49 with arrow named "&eᴢᴘěᴛ":
+            openMarketplace({_p}, 0)
+
+        make gui 50 with hopper named "&a&lᴠʏʙʀᴀᴛ ᴠšᴇ":
+            loop {orders::stash::%{_uuid}%::*}:
+                if {_p} has enough space for loop-value:
+                    give loop-value to {_p}
+                    delete {orders::stash::%{_uuid}%::%loop-index%}
+                else:
+                    send "{@prefix} &cɪɴᴠᴇɴᴛář ꜱᴇ ɴᴀᴘʟɴɪʟ! ɴᴇᴋᴛᴇʀé ᴘᴏʟᴏžᴋʏ ᴢůꜱᴛᴀʟʏ." to {_p}
+                    stop loop
+            openStash({_p})
+
+    open last gui to {_p}
+
+function fillOrder(p: player, id: text):
+    set {_buyer} to {orders::list::%{_id}%::buyer}
+    if {_buyer} is uuid of {_p}:
+        send "{@prefix} &cɴᴇᴍůžᴇš ᴘʟɴɪᴛ ᴠʟᴀꜱᴛɴí ᴢᴀᴋáᴢᴋᴜ!" to {_p}
+        stop
+
+    set {_item} to {orders::list::%{_id}%::item}
+    set {_amt} to {orders::list::%{_id}%::amount}
+    set {_price} to {orders::list::%{_id}%::price}
+
+    create a gui with virtual hopper inventory named "ᴅᴏʀᴜčᴇɴí ᴘᴏʟᴏžᴇᴋ":
+        make gui 2 with {_item} with lore "&7&lᴘᴏᴛřᴇʙᴜᴊᴇᴍᴇ:%nl%&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%%nl%&8» &fᴏᴅᴍěɴᴀ: &e%{_price}% {@currency}%nl%%nl%&e&lᴄʟɪᴄᴋ &8» &fᴅᴏᴅᴀᴛ ᴘředᴍěᴛʏ ᴢ ɪɴᴠᴇɴᴛářᴇ":
+            if {orders::list::%{_id}%} is not set:
+                send "{@prefix} &cᴛᴀᴛᴏ ᴢᴀᴋáᴢᴋᴀ ᴊɪž ɴᴇᴇxɪꜱᴛᴜᴊᴇ!" to {_p}
+                close {_p}'s inventory
+                stop
+            if {_p} has {_amt} of {_item}:
+                remove {_amt} of {_item} from {_p}'s inventory
+                add {_price} to {_p}'s balance
+
+                # Move to buyer's stash
+                add {_amt} of {_item} to {orders::stash::%{_buyer}%::*}
+
+                send "{@prefix} &aᴢᴀᴋáᴢᴋᴀ ꜱᴘʟɴěɴᴀ! ᴅᴏꜱᴛᴀʟ ᴊꜱɪ &e%{_price}% {@currency}&a." to {_p}
+
+                # Notify buyer if online
+                set {_buyer_p} to {_buyer} parsed as offline player
+                if {_buyer_p} is online:
+                    send "{@prefix} &aᴠᴀšᴇ ᴢᴀᴋáᴢᴋᴀ ɴᴀ &e%toSmallCaps("%type of {_item}%")% &aʙʏʟᴀ ꜱᴘʟɴěɴᴀ!" to {_buyer_p}
+
+                delete {orders::list::%{_id}%::*}
+                delete {orders::list::%{_id}%}
+                close {_p}'s inventory
+            else:
+                send "{@prefix} &cɴᴇᴍáš ᴅᴏꜱᴛᴀᴛᴇᴋ ᴘᴏʟᴏžᴇᴋ ᴠ ɪɴᴠᴇɴᴛářɪ!" to {_p}
+
+    open last gui to {_p}
+
+function createOrderStep1(p: player):
+    if tool of {_p} is air:
+        send "{@prefix} &cᴍᴜꜱíš ᴅʀžᴇᴛ ᴘředᴍěᴛ, ᴋᴛᴇʀý ᴄʜᴄᴇš ᴋᴏᴜᴘɪᴛ!" to {_p}
+        stop
+
+    set {_item} to 1 of tool of {_p}
+    set {temp::order::%uuid of {_p}%::item} to {_item}
+    set {temp::order::%uuid of {_p}%::amount} to 1
+    set {temp::order::%uuid of {_p}%::price} to 100
+    createOrderStep2({_p})
+
+function createOrderStep2(p: player):
+    set {_uuid} to uuid of {_p}
+    set {_item} to {temp::order::%{_uuid}%::item}
+    set {_amt} to {temp::order::%{_uuid}%::amount}
+    set {_price} to {temp::order::%{_uuid}%::price}
+
+    create a gui with virtual chest inventory with 3 rows named "ᴠʏᴛᴠᴏřᴇɴí ᴢᴀᴋáᴢᴋʏ":
+        fill gui with gray stained glass pane named " "
+
+        # Item Display
+        make gui 13 with {_item} with lore "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴘᴏʟᴏžᴋᴀ: &e%toSmallCaps("%type of {_item}%")%%nl%&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%%nl%&8» &fᴄᴇʟᴋᴏᴠá ᴄᴇɴᴀ: &e%{_price}% {@currency}%nl%%nl%&e&lᴄʟɪᴄᴋ &8» &fᴘᴏᴛᴠʀᴅɪᴛ ᴀ ᴠʏᴛᴠᴏřɪᴛ":
+            # Final check and creation
+            set {_balance} to {_p}'s balance
+            if {_balance} < {temp::order::%{_uuid}%::price}:
+                send "{@prefix} &cɴᴇᴍáš ᴅᴏꜱᴛᴀᴛᴇᴋ ᴘᴇɴěᴢ!" to {_p}
+                stop
+
+            remove {temp::order::%{_uuid}%::price} from {_p}'s balance
+
+            # Save order
+            set {_id} to random 8 char string from charset "0123456789ABCDEF"
+            while {orders::list::%{_id}%} is set:
+                set {_id} to random 8 char string from charset "0123456789ABCDEF"
+
+            set {orders::list::%{_id}%} to true
+            set {orders::list::%{_id}%::item} to {temp::order::%{_uuid}%::item}
+            set {orders::list::%{_id}%::amount} to {temp::order::%{_uuid}%::amount}
+            set {orders::list::%{_id}%::price} to {temp::order::%{_uuid}%::price}
+            set {orders::list::%{_id}%::buyer} to {_uuid}
+            set {orders::list::%{_id}%::buyer_name} to name of {_p}
+            set {orders::list::%{_id}%::timestamp} to now
+
+            send "{@prefix} &aᴢᴀᴋáᴢᴋᴀ ʙʏʟᴀ ᴠʏᴛᴠᴏřᴇɴᴀ!" to {_p}
+            delete {temp::order::%{_uuid}%::*}
+            close {_p}'s inventory
+
+        # Amount Controls
+        make gui 10 with red wool named "&c-64":
+            if {temp::order::%{_uuid}%::amount} > 64:
+                remove 64 from {temp::order::%{_uuid}%::amount}
+                createOrderStep2({_p})
+        make gui 11 with pink wool named "&c-1":
+            if {temp::order::%{_uuid}%::amount} > 1:
+                remove 1 from {temp::order::%{_uuid}%::amount}
+                createOrderStep2({_p})
+        make gui 15 with light green wool named "&a+1":
+            add 1 to {temp::order::%{_uuid}%::amount}
+            createOrderStep2({_p})
+        make gui 16 with lime wool named "&a+64":
+            add 64 to {temp::order::%{_uuid}%::amount}
+            createOrderStep2({_p})
+
+        # Price Controls
+        make gui 19 with red terracotta named "&c-100 {@currency}":
+            if {temp::order::%{_uuid}%::price} > 100:
+                remove 100 from {temp::order::%{_uuid}%::price}
+                createOrderStep2({_p})
+        make gui 20 with orange terracotta named "&c-10 {@currency}":
+            if {temp::order::%{_uuid}%::price} > 10:
+                remove 10 from {temp::order::%{_uuid}%::price}
+                createOrderStep2({_p})
+        make gui 24 with yellow terracotta named "&a+10 {@currency}":
+            add 10 to {temp::order::%{_uuid}%::price}
+            createOrderStep2({_p})
+        make gui 25 with lime terracotta named "&a+100 {@currency}":
+            add 100 to {temp::order::%{_uuid}%::price}
+            createOrderStep2({_p})
+
+    open last gui to {_p}
