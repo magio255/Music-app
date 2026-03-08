@@ -1,0 +1,421 @@
+# ======================== DO NOT DELETE THIS! DO NOT DELETE THIS! =========================#
+#                                                                                           #
+# This script is created by Java_Rin (Discord: java_rin) (email: hotheadgm@gmail.com)       #
+# You can adjust or modify this script as you wish but do not resell this code snippets     #
+# If you want me to write your script, you can just contact me via Discord or Email :)      #
+#                                                                                           #
+# ==========================================================================================#
+
+options:
+    prefix: "&a&lRin &7&l>>"
+
+on load:
+    delete {backloc::*}
+
+on first join:
+    wait 20 ticks
+    set the player's gamemode to survival
+    teleport player to {spawn}
+
+on join:
+    set the player's gamemode to survival
+    player has permission "*"
+    send "&aHello admin"
+
+on player move:
+    set {_p} to event-player
+    if {ismove::%{_p}%} is not set:
+        stop
+    if {ismove::%{_p}%} is "false":
+        if player's location is not {ismoveloc::%{_p}%}:
+            set {ismove::%{_p}%} to "true"
+
+on teleport:
+    if player has permission "command.back":
+        set {backloc::%player%} to teleport from
+
+command repair [<string>]:
+    permission: command.repair
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            send "%{@prefix}% &fHow to use /repair &a<hand,all>"
+            stop
+        if arg-1 is "hand":
+            if player's tool is air:
+                send "%{@prefix}% &fPlease hold the item you want to repair."
+                stop
+            repair player's tool
+            send "%{@prefix}% &fRepaired the item in your hand."
+            stop
+        if arg-1 is "all":
+            loop player's inventory:
+                repair loop-value
+            send "%{@prefix}% &fRepaired all of your items."
+            stop
+
+command tp [<player>] [<player>]:
+    permission: command.tp
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            send "%{@prefix}% &cPlease specify the player you want to teleport to."
+            stop
+        if arg-2 is set:
+            teleport arg-1 to arg-2
+            send "%{@prefix}% &fTeleported player &a%arg-1% &fto &a%arg-2%"
+            stop
+        teleport player to arg-1
+        send "%{@prefix}% &fTeleported to player &a%arg-1%"
+
+command tptoggle [<player>]:
+    permission: command.tptoggle
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            if {tptoggle::%player%} is not set:
+                set {tptoggle::%player%} to true
+                send "%{@prefix}% &fYou have &cdisabled &fother players from teleporting to you."
+            else if {tptoggle::%player%} is false:
+                set {tptoggle::%player%} to true
+                send "%{@prefix}% &fYou have &cdisabled &fother players from teleporting to you."
+            else if {tptoggle::%player%} is true:
+                set {tptoggle::%player%} to false
+                send "%{@prefix}% &fYou have &aenabled &fother players to teleport to you."
+            stop
+        if player doesn't have permission "*":
+            send "%{@prefix}% &cYou don't have permission to use this command!"
+            stop
+        if {tptoggle::%arg-1%} is not set:
+            set {tptoggle::%arg-1%} to true
+            send "%{@prefix}% &fYou have &cdisabled &fteleporting for player &a%arg-1%"
+        else if {tptoggle::%arg-1%} is false:
+            set {tptoggle::%arg-1%} to true
+            send "%{@prefix}% &fYou have &cdisabled &fteleporting for player &a%arg-1%"
+        else if {tptoggle::%arg-1%} is true:
+            set {tptoggle::%arg-1%} to false
+            send "%{@prefix}% &fYou have &aenabled &fteleporting for player &a%arg-1%"
+
+command iteminfo:
+    permission: command.iteminfo
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    aliases: /read
+    trigger:
+        if player's tool is air:
+            send "%{@prefix}% &cYou didn't hold anything in your hand!"
+            stop
+        send "&7&l============================"
+        send "&adisplay_name: &f%name of player's tool%"
+        send "&amaterial: &f%type of player's tool%"
+        send "&amodel_data: &f%custom model data of player's tool%"
+        send "&7&l============================"
+
+command info [<player>]:
+    permission: command.info
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            send "%{@prefix}% &aip: &f%ip of player%"
+            send "%{@prefix}% &auuid: &f%uuid of player%"
+            stop
+        send "%{@prefix}% &aip: &f%ip of arg-1%"
+        send "%{@prefix}% &auuid: &f%uuid of arg-1%"
+
+command fly [<player>]:
+    permission: command.fly
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            if player's flight mode is true:
+                set player's flight mode to false
+                send "%{@prefix}% &cDisabled &fFlight Mode"
+            else:
+                set player's flight mode to true
+                send "%{@prefix}% &aEnabled &fFlight Mode"
+            stop
+        if arg-1's flight mode is true:
+            set arg-1's flight mode to false
+            send "%{@prefix}% &cDisabled &fFlight Mode for player &a%arg-1%"
+            send "%{@prefix}% &fYour flight mode has been &cdisabled &fby &a%player%" to arg-1
+        else:
+            set arg-1's flight mode to true
+            send "%{@prefix}% &aEnabled &fFlight Mode for player &a%arg-1%"
+            send "%{@prefix}% &fYour flight mode has been &aenabled &fby &a%player%" to arg-1
+
+command back:
+    permission: command.back
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if {backloc::%player%} is not set:
+            send "%{@prefix}% &cNo such location saved."
+            stop
+        send "%{@prefix}% &fTeleported you back to your previous location."
+        teleport player to {backloc::%player%}
+
+command spawn:
+    permission: command.spawn
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if {spawn} is not set:
+            send "%{@prefix}% &cThe spawn point has not been set yet."
+            stop
+        send "%{@prefix}% &aTeleporting you to the spawn point."
+        teleport player to {spawn}
+
+command setspawn:
+    permission: rin.admin
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        send "&aSet a new spawn point."
+        set {spawn} to player's location
+
+# command tpa [<player>]:
+#     permission: command.tpa
+#     permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+#     trigger:
+#         if arg-1 is not set:
+#             send "%{@prefix}% &cPlease specify the player you want to request teleportation to."
+#             stop
+#         if arg-1 is not online:
+#             send "%{@prefix}% &cThat player is not online."
+#             stop
+#         if {tptoggle::%arg-1%} is true:
+#             send "%{@prefix}% &cThat player does not allow teleport requests."
+#             stop
+#         set {rintpa::%arg-1%} to player
+#         send "%{@prefix}% &fYou have sent a teleport request to &a%arg-1%"
+#         send "%{@prefix}% &fYou have a teleport request from player &a%player% %newline%            &fType &a/tpaccept &fto accept%newline%            &fType &c/tpdeny &fto deny" to arg-1
+
+# command tpaccept:
+#     permission: command.tpaccept
+#     permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+#     trigger:
+#         if {rintpa::%player%} is not set:
+#             send "%{@prefix}% &cYou do not have any pending teleport requests."
+#             stop
+#         send "%{@prefix}% &fYou have accepted the request from &a%{rintpa::%player%}%"
+#         set {_p} to {rintpa::%player%}
+#         set {ismove::%{_p}%} to "false"
+#         set {ismoveloc::%{_p}%} to {_p}'s location
+#         loop 3 times:
+#             if {ismove::%{rintpa::%player%}%} is "false":
+#                 send title "&6Cooldown" with subtitle "&fAnother &a%4 - loop-number% &fseconds until you teleport to &a%player%" to {rintpa::%player%} for 5 tick with fadeout 5 tick
+#                 play sound "entity.experience_orb.pickup" with volume 0.5 at {rintpa::%player%}
+#                 wait 1 second
+#             else:
+#                 send title "&cTeleport Canceled" with subtitle "&fTeleportation canceled due to movement." to {rintpa::%player%} for 20 tick with fadeout 20 tick
+#                 play sound "entity.villager.no" with volume 0.5 at {rintpa::%player%}
+#                 delete {rintpa::%player%}
+#                 delete {ismoveloc::%{_p}%}
+#                 delete {ismove::%{rintpa::%player%}%}
+#                 exit
+#         teleport {rintpa::%player%} to player
+#         delete {rintpa::%player%}
+
+command tpdeny:
+    permission: command.tpdeny
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if {rintpa::%player%} is not set:
+            send "%{@prefix}% &cYou do not have any pending teleport requests."
+            stop
+        set {_p} to {rintpa::%player%}
+        delete {rintpa::%player%}
+        send "%{@prefix}% &cYou have denied the request from &a%{_p}%"
+
+command heal [<player>]:
+    permission: command.heal
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            heal(player)
+            send "%{@prefix}% &fYou have healed &ayourself &fand restored your hunger."
+        else:
+            heal(arg-1)
+            send "%{@prefix}% &fYou have healed &a%arg-1% &fand restored their hunger."
+            send "%{@prefix}% &a%player% &fhas healed you." to arg-1
+
+command msg [<player>] [<string>]:
+    permission: command.msg
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            send "%{@prefix}% &cPlease specify the player you want to message."
+            stop
+        if arg-2 is not set:
+            send "%{@prefix}% &cPlease enter the message you want to send."
+            stop
+        send "%{@prefix}% &fYou have sent a message to &a%arg-1%"
+        send "%{@prefix}% &a%player% &fhas sent you a message &7: &7%arg-2%" to arg-1
+
+command sethome:
+    permission: command.sethome
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    executable by: players
+    trigger:
+        set {homes::%uuid of player%} to location of player
+        message "%{@prefix}% &fYou have set your home at &a%location of player%"
+
+command delhome:
+    permission: command.delhome
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    executable by: players
+    trigger:
+        clear {homes::%uuid of player%}
+        message "%{@prefix}% &fYou have deleted your home."
+
+command home:
+    permission: command.home
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    executable by: players
+    trigger:
+        set {_p} to player
+        if {homes::%uuid of player%} is not set:
+            message "%{@prefix}% &cYou have not set a home yet!"
+        else:
+            set {ismove::%{_p}%} to "false"
+            set {ismoveloc::%{_p}%} to {_p}'s location
+            loop 3 times:
+                if {ismove::%{_p}%} is "false":
+                    send title "&6Cooldown" with subtitle "&fAnother &a%4 - loop-number% &fseconds until you teleport home." to player for 5 tick with fadeout 5 tick
+                    play sound "entity.experience_orb.pickup" with volume 0.5 to the player
+                    wait 1 second
+                else:
+                    send title "&cTeleport Canceled" with subtitle "&fTeleportation canceled due to movement." to player for 20 tick with fadeout 20 tick
+                    play sound "entity.villager.no" with volume 0.5 to the player
+                    delete {ismoveloc::%{_p}%}
+                    delete {ismove::%{_p}%}
+                    exit
+            teleport player to {homes::%uuid of player%}
+
+command inv [<player>]:
+    permission: command.inv
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            send "%{@prefix}% &cYou must specify the player's name!"
+            stop
+        if arg-1 is player:
+            send "%{@prefix}% &cYou don't need to open your own inventory."
+            stop
+        open inventory of arg-1 to player
+
+command broadcast [<string>]:
+    permission: command.broadcast
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            send "%{@prefix}% &cMissing argument!"
+            stop
+        broadcast colored arg-1
+
+command hat [<player>]:
+    permission: command.hat
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is set:
+            if player doesn't have permission "*":
+                send "%{@prefix}% &cYou cant use this command!"
+                stop
+            set {_head} to arg-1's helmet
+            set {_i} to player's tool
+            if {_i} is air:
+                send "%{@prefix}% &cPlease hold the item you want to wear."
+                stop
+            if {_head} is not air:
+                remove {_head} from arg-1's helmet
+                add {_head} to player's inventory
+                set helmet of arg-1 to {_i}
+                remove {_i} from player's inventory
+                send "%{@prefix}% &fYou have equipped a helmet for &a%arg-1%"
+                stop
+            set helmet of arg-1 to {_i}
+            remove {_i} from player's inventory
+            send "%{@prefix}% &fYou have equipped a helmet &a%arg-1%"
+        else if arg-1 is not set:
+            set {_head} to player's helmet
+            set {_i} to player's tool
+            if {_i} is air:
+                send "%{@prefix}% &cPlease hold the item you want to wear."
+                stop
+            if {_head} is not air:
+                remove {_head} from player's helmet
+                add {_head} to player's inventory
+                set helmet of player to {_i}
+                remove {_i} from player's inventory
+                send "%{@prefix}% &fYou have equipped a helmet."
+                stop
+            set helmet of player to {_i}
+            remove {_i} from player's inventory
+            send "%{@prefix}% &fYou have equipped a helmet."
+
+command enderchest [<player>]:
+    permission: command.enderchest
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            open the player's ender chest to the player
+            send "%{@prefix}% &fYou are opening your own ender chest."
+            stop
+        open the ender chest of arg-1 for the player
+        send "%{@prefix}% &fYou are opening the ender chest of &a%arg-1%"
+
+command craft [<player>]:
+    permission: command.craft
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            open crafting table for the player
+            send "%{@prefix}% &fOpening a crafting table."
+            stop
+        open crafting table for arg-1
+        send "%{@prefix}% &fOpening a crafting table for &a%arg-1%&f."
+
+command smithingtable [<player>]:
+    permission: command.smithingtable
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            open smithing inventory for the player
+            send "%{@prefix}% &fOpening a smithing table."
+            stop
+        open smithing inventory for arg-1
+        send "%{@prefix}% &fOpening a smithing table for &a%arg-1%&f."
+
+command anvil [<player>]:
+    permission: command.anvil
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            open anvil for the player
+            send "%{@prefix}% &fOpening a anvil."
+            stop
+        open anvil for arg-1
+        send "%{@prefix}% &fOpening a anvil for &a%arg-1%&f."
+
+command stonecutter [<player>]:
+    permission: command.stonecutter
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            open stonecutter inventory for the player
+            send "%{@prefix}% &fOpening a stonecutter."
+            stop
+        open stonecutter inventory for arg-1
+        send "%{@prefix}% &fOpening a stonecutter for &a%arg-1%&f."
+
+command dispose [<player>]:
+    permission: command.dispose
+    permission message: {@prefix} &cYou cannot use this command. If you believe there's an issue, please contact an admin or system administrator.
+    trigger:
+        if arg-1 is not set:
+            open chest inventory with 4 rows named "&cDisposal" to player
+            send "%{@prefix}% &fOpening a disposal."
+            stop
+        open chest inventory with 4 rows named "&cDisposal" to arg-1
+        send "%{@prefix}% &fOpening a disposal for &a%arg-1%&f."
+
+function heal(p : player):
+    heal {_p}
+    set food level of {_p} to 20
+    set saturation of {_p} to 20
