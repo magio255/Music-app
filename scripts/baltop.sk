@@ -28,7 +28,7 @@ function updateBaltop():
 
     set {baltop::last_update} to now
 
-every 10 minutes:
+every 10 seconds:
     updateBaltop()
 
 on script load:
@@ -66,13 +66,13 @@ function openBaltop(p: player, page: integer):
             set {_name} to {_split::1}
             set {_bal} to {_split::2}
             set {_item} to skull of ({_name} parsed as offline player) named "&e%{_index}%. &f%{_name}%"
-            set lore of {_item} to "&7ʙᴀʟᴀɴᴄᴇ: &6%{_bal}% ᴄᴏɪɴs"
+            set lore of {_item} to "&7ʙᴀʟᴀɴᴄᴇ: &6%{_bal}% ᴍᴏɴᴇʏ"
             set slot {_i} of {_v} to {_item}
         add 1 to {_i}
 
-    set slot 45 of {_v} to arrow named "&cᴢᴘĚᴛ"
-    set slot 49 of {_v} to sign named "&eʜʟᴇᴅᴀᴛ ʜʀÁČᴇ"
-    set slot 53 of {_v} to arrow named "&aᴅᴀʟŠÍ"
+    set slot 45 of {_v} to arrow named "&cᴢᴘěᴛ"
+    set slot 49 of {_v} to sign named "&eʜʟᴇᴅᴀᴛ ʜʀáčᴇ"
+    set slot 53 of {_v} to arrow named "&aᴅᴀʟší"
 
     open {_v} to {_p}
     set {baltop::page::%uuid of {_p}%} to {_page}
@@ -91,7 +91,7 @@ on inventory click:
                 openBaltop(player, {_page} + 1)
         else if clicked slot is 49:
             close player's inventory
-            send "&6&lʙᴀʟᴛᴏᴘ &8» &fɴᴀᴘɪŠ ᴊᴍÉɴᴏ ʜʀÁČᴇ ᴅᴏ ᴄʜᴀᴛᴜ:"
+            send "&6&lʙᴀʟᴛᴏᴘ &8» &fɴᴀᴘɪš ᴊᴍéɴᴏ ʜʀáčᴇ ᴅᴏ ᴄʜᴀᴛᴜ:"
             set {baltop::search::%uuid of player%} to true
 
 on chat:
@@ -107,7 +107,7 @@ on chat:
             if {_split::1} is {_search}:
                 set {_found} to true
                 set {_bal} to {_split::2}
-                send "&6&lʙᴀʟᴛᴏᴘ &8» &fʜʀÁČ &e%{_search}% &fᴊᴇ ɴᴀ &6%{_rank}%. &fᴍÍsᴛĚ s ʙᴀʟᴀɴᴄÍ &6%{_bal}% ᴄᴏɪɴs"
+                send "&6&lʙᴀʟᴛᴏᴘ &8» &fʜʀáč &e%{_search}% &fᴊᴇ ɴᴀ &6%{_rank}%. ᴍísᴛě s ʙᴀʟᴀɴᴄí &6%{_bal}% ᴍᴏɴᴇʏ"
                 stop
         if {_found} is false:
-            send "&6&lʙᴀʟᴛᴏᴘ &8» &fʜʀÁČ &e%{_search}% &fɴᴇʙʏʟ ɴᴀʟᴇᴢᴇɴ ᴠ ʙᴀʟᴛᴏᴘᴜ."
+            send "&6&lʙᴀʟᴛᴏᴘ &8» &fʜʀáč &e%{_search}% &fɴᴇʙʏʟ ɴᴀʟᴇᴢᴇɴ ᴠ ʙᴀʟᴛᴏᴘᴜ."
