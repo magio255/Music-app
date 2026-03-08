@@ -52,12 +52,12 @@ command /orders [<text>]:
 
 function openMarketplace(p: player, page: number):
     set {_uuid} to uuid of {_p}
-    open chest with 6 rows named "ᴛʀžɪšᴛě ᴢᴀᴋáᴢᴇᴋ" to {_p}
-    set metadata tag "orders_page" of {_p} to {_page}
+    set {_inv} to chest inventory with 6 rows
+    set name of {_inv} to "ᴛʀžɪšᴛě ᴢᴀᴋáᴢᴇᴋ"
 
     # Background
     loop 54 times:
-        set slot (loop-number - 1) of {_p}'s current inventory to gray stained glass pane named " "
+        set slot (loop-number - 1) of {_inv} to gray stained glass pane named " "
 
     # Items
     set {_start} to {_page} * 45
@@ -73,9 +73,22 @@ function openMarketplace(p: player, page: number):
                 set {_price} to {orders::list::%{_id}%::price}
                 set {_buyer_name} to {orders::list::%{_id}%::buyer_name}
 
-                set {_lore} to "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴋᴜᴘᴜᴊíᴄí: &e%{_buyer_name}%%nl%&8» &fᴘᴏʟᴏžᴋᴀ: &e%toSmallCaps("%type of {_item}%")%%nl%&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%%nl%&8» &fᴄᴇɴᴀ ᴢᴀ ᴋᴜꜱ: &e%{_price} / {_amt}% {@currency}%nl%&8» &fᴄᴇʟᴋᴏᴠá ᴄᴇɴᴀ: &e%{_price}% {@currency}%nl%%nl%&e&lᴄʟɪᴄᴋ &8» &fᴘʟɴɪᴛ ᴢᴀᴋáᴢᴋᴜ"
+                set {_type} to "%type of {_item}%"
+                set {_type} to toSmallCaps({_type})
+                set {_price_per} to {_price} / {_amt}
 
-                set slot {_slot} of {_p}'s current inventory to {_item} with lore {_lore}
+                set slot {_slot} of {_inv} to {_item}
+                delete {_l::*}
+                add "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:" to {_l::*}
+                add "&8» &fᴋᴜᴘᴜᴊíᴄí: &e%{_buyer_name}%" to {_l::*}
+                add "&8» &fᴘᴏʟᴏžᴋᴀ: &e%{_type}%" to {_l::*}
+                add "&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%" to {_l::*}
+                add "&8» &fᴄᴇɴᴀ ᴢᴀ ᴋᴜꜱ: &e%{_price_per}% {@currency}" to {_l::*}
+                add "&8» &fᴄᴇʟᴋᴏᴠá ᴄᴇɴᴀ: &e%{_price}% {@currency}" to {_l::*}
+                add "" to {_l::*}
+                add "&e&lᴄʟɪᴄᴋ &8» &fᴘʟɴɪᴛ ᴢᴀᴋáᴢᴋᴜ" to {_l::*}
+                set lore of slot {_slot} of {_inv} to {_l::*}
+
                 set metadata tag "order_id_%{_slot}%" of {_p} to {_id}
                 add 1 to {_slot}
         add 1 to {_count}
@@ -84,25 +97,33 @@ function openMarketplace(p: player, page: number):
 
     # Pagination
     if {_page} > 0:
-        set slot 45 of {_p}'s current inventory to arrow named "&eᴘředᴄʜᴏᴢí ꜱᴛʀáɴᴋᴀ"
+        set slot 45 of {_inv} to arrow named "&eᴘředᴄʜᴏᴢí ꜱᴛʀáɴᴋᴀ"
 
     if size of {orders::list::*} > ({_page} + 1) * 45:
-        set slot 53 of {_p}'s current inventory to arrow named "&eᴅᴀʟší ꜱᴛʀáɴᴋᴀ"
+        set slot 53 of {_inv} to arrow named "&eᴅᴀʟší ꜱᴛʀáɴᴋᴀ"
 
     # Action Buttons
-    set slot 49 of {_p}'s current inventory to emerald block named "&a&lᴠʏᴛᴠᴏřɪᴛ ᴢᴀᴋáᴢᴋᴜ" with lore "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴋʟɪᴋɴɪ ᴘʀᴏ ᴠʏᴛᴠᴏřᴇɴí%nl%&8» &fɴᴏᴠé ᴘᴏᴘᴛáᴠᴋʏ"
-    set slot 50 of {_p}'s current inventory to chest named "&6&lᴍᴏᴊᴇ ᴢáꜱᴏʙʏ" with lore "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴢᴅᴇ ɴᴀᴊᴅᴇš ꜱᴠᴏᴊᴇ%nl%&8» &fᴅᴏᴅᴀɴé ᴘᴏʟᴏžᴋʏ"
-    set slot 48 of {_p}'s current inventory to book named "&b&lᴍᴏᴊᴇ ᴢᴀᴋáᴢᴋʏ" with lore "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fꜱᴘʀáᴠᴀ ᴛᴠʏᴄʜ%nl%&8» &fᴀᴋᴛɪᴠɴíᴄʜ ᴢᴀᴋáᴢᴇᴋ"
+    set slot 49 of {_inv} to emerald block named "&a&lᴠʏᴛᴠᴏřɪᴛ ᴢᴀᴋáᴢᴋᴜ"
+    set lore of slot 49 of {_inv} to "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:" and "&8» &fᴋʟɪᴋɴɪ ᴘʀᴏ ᴠʏᴛᴠᴏřᴇɴí" and "&8» &fɴᴏᴠé ᴘᴏᴘᴛáᴠᴋʏ"
+
+    set slot 50 of {_inv} to chest named "&6&lᴍᴏᴊᴇ ᴢáꜱᴏʙʏ"
+    set lore of slot 50 of {_inv} to "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:" and "&8» &fᴢᴅᴇ ɴᴀᴊᴅᴇš ꜱᴠᴏᴊᴇ" and "&8» &fᴅᴏᴅᴀɴé ᴘᴏʟᴏžᴋʏ"
+
+    set slot 48 of {_inv} to book named "&b&lᴍᴏᴊᴇ ᴢᴀᴋáᴢᴋʏ"
+    set lore of slot 48 of {_inv} to "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:" and "&8» &fꜱᴘʀáᴠᴀ ᴛᴠʏᴄʜ" and "&8» &fᴀᴋᴛɪᴠɴíᴄʜ ᴢᴀᴋáᴢᴇᴋ"
+
+    open {_inv} to {_p}
 
 on inventory click:
-    if name of player's current inventory is "ᴛʀžɪšᴛě ᴢᴀᴋáᴢᴇᴋ":
+    if name of event-inventory is "ᴛʀžɪšᴛě ᴢᴀᴋáᴢᴇᴋ":
         cancel event
         if clicked slot is 45:
             if metadata tag "orders_page" of player > 0:
                 openMarketplace(player, (metadata tag "orders_page" of player - 1))
         else if clicked slot is 53:
-            if size of {orders::list::*} > (metadata tag "orders_page" of player + 1) * 45:
-                openMarketplace(player, (metadata tag "orders_page" of player + 1))
+            set {_next_page} to (metadata tag "orders_page" of player + 1)
+            if size of {orders::list::*} > {_next_page} * 45:
+                openMarketplace(player, {_next_page})
         else if clicked slot is 49:
             createOrderStep1(player)
         else if clicked slot is 50:
@@ -129,12 +150,16 @@ function fillOrder(p: player, id: text):
     set {_amt} to {orders::list::%{_id}%::amount}
     set {_price} to {orders::list::%{_id}%::price}
 
-    open hopper named "ᴅᴏʀᴜčᴇɴí ᴘᴏʟᴏžᴇᴋ" to {_p}
-    set slot 2 of {_p}'s current inventory to {_item} with lore "&7&lᴘᴏᴛřᴇʙᴜᴊᴇᴍᴇ:%nl%&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%%nl%&8» &fᴏᴅᴍěɴᴀ: &e%{_price}% {@currency}%nl%%nl%&e&lᴄʟɪᴄᴋ &8» &fᴅᴏᴅᴀᴛ ᴘředᴍěᴛʏ ᴢ ɪɴᴠᴇɴᴛářᴇ"
+    set {_inv} to hopper inventory
+    set name of {_inv} to "ᴅᴏʀᴜčᴇɴí ᴘᴏʟᴏžᴇᴋ"
+
+    set slot 2 of {_inv} to {_item}
+    set lore of slot 2 of {_inv} to "&7&lᴘᴏᴛřᴇʙᴜᴊᴇᴍᴇ:" and "&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%" and "&8» &fᴏᴅᴍěɴᴀ: &e%{_price}% {@currency}" and "" and "&e&lᴄʟɪᴄᴋ &8» &fᴅᴏᴅᴀᴛ ᴘředᴍěᴛʏ ᴢ ɪɴᴠᴇɴᴛářᴇ"
     set metadata tag "filling_order_id" of {_p} to {_id}
+    open {_inv} to {_p}
 
 on inventory click:
-    if name of player's current inventory is "ᴅᴏʀᴜčᴇɴí ᴘᴏʟᴏžᴇᴋ":
+    if name of event-inventory is "ᴅᴏʀᴜčᴇɴí ᴘᴏʟᴏžᴇᴋ":
         cancel event
         if clicked slot is 2:
             set {_id} to metadata tag "filling_order_id" of player
@@ -157,7 +182,9 @@ on inventory click:
 
                 set {_buyer_p} to {_buyer} parsed as offline player
                 if {_buyer_p} is online:
-                    send "{@prefix} &aᴠᴀšᴇ ᴢᴀᴋáᴢᴋᴀ ɴᴀ &e%toSmallCaps("%type of {_item}%")% &aʙʏʟᴀ ꜱᴘʟɴěɴᴀ!" to {_buyer_p}
+                    set {_type} to "%type of {_item}%"
+                    set {_type} to toSmallCaps({_type})
+                    send "{@prefix} &aᴠᴀšᴇ ᴢᴀᴋáᴢᴋᴀ ɴᴀ &e%{_type}% &aʙʏʟᴀ ꜱᴘʟɴěɴᴀ!" to {_buyer_p}
 
                 delete {orders::list::%{_id}%::*}
                 delete {orders::list::%{_id}%}
@@ -182,24 +209,31 @@ function createOrderStep2(p: player):
     set {_amt} to {temp::order::%{_uuid}%::amount}
     set {_price} to {temp::order::%{_uuid}%::price}
 
-    open chest with 3 rows named "ᴠʏᴛᴠᴏřᴇɴí ᴢᴀᴋáᴢᴋʏ" to {_p}
+    set {_inv} to chest inventory with 3 rows
+    set name of {_inv} to "ᴠʏᴛᴠᴏřᴇɴí ᴢᴀᴋáᴢᴋʏ"
+
     loop 27 times:
-        set slot (loop-number - 1) of {_p}'s current inventory to gray stained glass pane named " "
+        set slot (loop-number - 1) of {_inv} to gray stained glass pane named " "
 
-    set slot 13 of {_p}'s current inventory to {_item} with lore "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴘᴏʟᴏžᴋᴀ: &e%toSmallCaps("%type of {_item}%")%%nl%&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%%nl%&8» &fᴄᴇʟᴋᴏᴠá ᴄᴇɴᴀ: &e%{_price}% {@currency}%nl%%nl%&e&lᴄʟɪᴄᴋ &8» &fᴘᴏᴛᴠʀᴅɪᴛ ᴀ ᴠʏᴛᴠᴏřɪᴛ"
+    set slot 13 of {_inv} to {_item}
+    set {_type} to "%type of {_item}%"
+    set {_type} to toSmallCaps({_type})
+    set lore of slot 13 of {_inv} to "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:" and "&8» &fᴘᴏʟᴏžᴋᴀ: &e%{_type}%" and "&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%" and "&8» &fᴄᴇʟᴋᴏᴠá ᴄᴇɴᴀ: &e%{_price}% {@currency}" and "" and "&e&lᴄʟɪᴄᴋ &8» &fᴘᴏᴛᴠʀᴅɪᴛ ᴀ ᴠʏᴛᴠᴏřɪᴛ"
 
-    set slot 10 of {_p}'s current inventory to red wool named "&c-64"
-    set slot 11 of {_p}'s current inventory to pink wool named "&c-1"
-    set slot 15 of {_p}'s current inventory to light green wool named "&a+1"
-    set slot 16 of {_p}'s current inventory to lime wool named "&a+64"
+    set slot 10 of {_inv} to red wool named "&c-64"
+    set slot 11 of {_inv} to pink wool named "&c-1"
+    set slot 15 of {_inv} to lime wool named "&a+1"
+    set slot 16 of {_inv} to lime wool named "&a+64"
 
-    set slot 19 of {_p}'s current inventory to red terracotta named "&c-100 {@currency}"
-    set slot 20 of {_p}'s current inventory to orange terracotta named "&c-10 {@currency}"
-    set slot 24 of {_p}'s current inventory to yellow terracotta named "&a+10 {@currency}"
-    set slot 25 of {_p}'s current inventory to lime terracotta named "&a+100 {@currency}"
+    set slot 19 of {_inv} to red terracotta named "&c-100 {@currency}"
+    set slot 20 of {_inv} to orange terracotta named "&c-10 {@currency}"
+    set slot 24 of {_inv} to yellow terracotta named "&a+10 {@currency}"
+    set slot 25 of {_inv} to lime terracotta named "&a+100 {@currency}"
+
+    open {_inv} to {_p}
 
 on inventory click:
-    if name of player's current inventory is "ᴠʏᴛᴠᴏřᴇɴí ᴢᴀᴋáᴢᴋʏ":
+    if name of event-inventory is "ᴠʏᴛᴠᴏřᴇɴí ᴢᴀᴋáᴢᴋʏ":
         cancel event
         set {_uuid} to uuid of player
         if clicked slot is 13:
@@ -256,9 +290,11 @@ on inventory click:
 
 function openMyOrders(p: player):
     set {_uuid} to uuid of {_p}
-    open chest with 6 rows named "ᴍᴏᴊᴇ ᴢᴀᴋáᴢᴋʏ" to {_p}
+    set {_inv} to chest inventory with 6 rows
+    set name of {_inv} to "ᴍᴏᴊᴇ ᴢᴀᴋáᴢᴋʏ"
+
     loop 54 times:
-        set slot (loop-number - 1) of {_p}'s current inventory to gray stained glass pane named " "
+        set slot (loop-number - 1) of {_inv} to gray stained glass pane named " "
 
     set {_slot} to 0
     loop {orders::list::*}:
@@ -268,18 +304,29 @@ function openMyOrders(p: player):
             set {_amt} to {orders::list::%{_id}%::amount}
             set {_price} to {orders::list::%{_id}%::price}
 
-            set {_lore} to "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:%nl%&8» &fᴘᴏʟᴏžᴋᴀ: &e%toSmallCaps("%type of {_item}%")%%nl%&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%%nl%&8» &fᴄᴇʟᴋᴏᴠá ᴄᴇɴᴀ: &e%{_price}% {@currency}%nl%%nl%&c&lᴄʟɪᴄᴋ &8» &fᴢʀᴜšɪᴛ ᴢᴀᴋáᴢᴋᴜ"
+            set {_type} to "%type of {_item}%"
+            set {_type} to toSmallCaps({_type})
 
-            set slot {_slot} of {_p}'s current inventory to {_item} with lore {_lore}
+            set slot {_slot} of {_inv} to {_item}
+            delete {_l::*}
+            add "&7&lɪɴꜰᴏʀᴍᴀᴄᴇ:" to {_l::*}
+            add "&8» &fᴘᴏʟᴏžᴋᴀ: &e%{_type}%" to {_l::*}
+            add "&8» &fᴍɴᴏžꜱᴛᴠí: &e%{_amt}%" to {_l::*}
+            add "&8» &fᴄᴇʟᴋᴏᴠá ᴄᴇɴᴀ: &e%{_price}% {@currency}" to {_l::*}
+            add "" to {_l::*}
+            add "&c&lᴄʟɪᴄᴋ &8» &fᴢʀᴜšɪᴛ ᴢᴀᴋáᴢᴋᴜ" to {_l::*}
+            set lore of slot {_slot} of {_inv} to {_l::*}
+
             set metadata tag "my_order_id_%{_slot}%" of {_p} to {_id}
             add 1 to {_slot}
             if {_slot} >= 45:
                 stop loop
 
-    set slot 49 of {_p}'s current inventory to arrow named "&eᴢᴘěᴛ"
+    set slot 49 of {_inv} to arrow named "&eᴢᴘěᴛ"
+    open {_inv} to {_p}
 
 on inventory click:
-    if name of player's current inventory is "ᴍᴏᴊᴇ ᴢᴀᴋáᴢᴋʏ":
+    if name of event-inventory is "ᴍᴏᴊᴇ ᴢᴀᴋáᴢᴋʏ":
         cancel event
         if clicked slot is 49:
             openMarketplace(player, 0)
@@ -298,24 +345,28 @@ on inventory click:
 
 function openStash(p: player):
     set {_uuid} to uuid of {_p}
-    open chest with 6 rows named "ᴍᴏᴊᴇ ᴢáꜱᴏʙʏ" to {_p}
+    set {_inv} to chest inventory with 6 rows
+    set name of {_inv} to "ᴍᴏᴊᴇ ᴢáꜱᴏʙʏ"
+
     loop 54 times:
-        set slot (loop-number - 1) of {_p}'s current inventory to gray stained glass pane named " "
+        set slot (loop-number - 1) of {_inv} to gray stained glass pane named " "
 
     set {_slot} to 0
     loop {orders::stash::%{_uuid}%::*}:
         set {_item} to loop-value
-        set slot {_slot} of {_p}'s current inventory to {_item} with lore "&e&lᴄʟɪᴄᴋ &8» &fᴠʏʙʀᴀᴛ ᴘředᴍěᴛ"
+        set slot {_slot} of {_inv} to {_item}
+        set lore of slot {_slot} of {_inv} to "&e&lᴄʟɪᴄᴋ &8» &fᴠʏʙʀᴀᴛ ᴘředᴍěᴛ"
         set metadata tag "stash_index_%{_slot}%" of {_p} to loop-index
         add 1 to {_slot}
         if {_slot} >= 45:
             stop loop
 
-    set slot 49 of {_p}'s current inventory to arrow named "&eᴢᴘěᴛ"
-    set slot 50 of {_p}'s current inventory to hopper named "&a&lᴠʏʙʀᴀᴛ ᴠšᴇ"
+    set slot 49 of {_inv} to arrow named "&eᴢᴘěᴛ"
+    set slot 50 of {_inv} to hopper named "&a&lᴠʏʙʀᴀᴛ ᴠšᴇ"
+    open {_inv} to {_p}
 
 on inventory click:
-    if name of player's current inventory is "ᴍᴏᴊᴇ ᴢáꜱᴏʙʏ":
+    if name of event-inventory is "ᴍᴏᴊᴇ ᴢáꜱᴏʙʏ":
         cancel event
         set {_uuid} to uuid of player
         if clicked slot is 49:
