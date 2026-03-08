@@ -2,7 +2,7 @@
 # ᴀᴜᴛᴏʀ: ᴊᴜʟᴇs
 
 variables:
-    {baltop::last_update} = now
+    {baltop::last_update} = 0
 
 function updateBaltop():
     clear {-baltop::ordered::*}
@@ -32,6 +32,7 @@ every 10 seconds:
     updateBaltop()
 
 on script load:
+    set {baltop::last_update} to now
     updateBaltop()
 
 command /baltop [<integer>]:
@@ -71,7 +72,7 @@ function openBaltop(p: player, page: integer):
         add 1 to {_i}
 
     set slot 45 of {_v} to arrow named "&cᴢᴘěᴛ"
-    set slot 49 of {_v} to sign named "&eʜʟᴇᴅᴀᴛ ʜʀáčᴇ"
+    set slot 49 of {_v} to oak sign named "&eʜʟᴇᴅᴀᴛ ʜʀáčᴇ"
     set slot 53 of {_v} to arrow named "&aᴅᴀʟší"
 
     open {_v} to {_p}
