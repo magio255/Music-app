@@ -52,6 +52,38 @@ function cacheEntities():
             else if {_tags::*} contains "clicker_h5":
                 set {-clicker::session::h5} to loop-entity
 
+function formatTime(t: timespan) :: text:
+    set {_s} to total seconds of {_t}
+    set {_m} to floor({_s} / 60)
+    set {_rs} to floor({_s} mod 60)
+    if {_m} > 0:
+        return "%{_m}% minuty %{_rs}% sekundy"
+    return "%{_rs}% sekundy"
+
+# --- PERIODICKÉ ÚKOLY ---
+
+every 30 seconds:
+    if {clicker::cooldown_end} is set:
+        set {_diff} to difference between {clicker::cooldown_end} and now
+        set {_m} to total minutes of {_diff}
+
+        # 5 minutové varování
+        if {_m} <= 5:
+            if {_m} > 4.5:
+                if {clicker::warned_5m} is not set:
+                    set {clicker::warned_5m} to true
+                    broadcast "{@prefix} &e&lSᴋᴇʟᴇᴛᴏɴ ᴄʟɪᴄᴋᴇʀ &fse resetuje za &e5 ᴍɪɴᴜᴛ!"
+
+        # Samotný reset
+        if now >= {clicker::cooldown_end}:
+            set {clicker::current_clicks} to 0
+            delete {clicker::cooldown_end}
+            delete {clicker::player_clicks::*}
+            delete {clicker::push_counter::*}
+            delete {clicker::warned_5m}
+            broadcast "{@prefix} &e&lSᴋᴇʟᴇᴛᴏɴ ᴄʟɪᴄᴋᴇʀ &fse resetnul!"
+            updateHolograms()
+
 # --- PŘÍKAZY ---
 
 command /clicker [<text>] [<text>]:
@@ -88,7 +120,7 @@ command /clicker [<text>] [<text>]:
             execute console command "data merge entity %uuid of {_m}% {Invulnerable:1b,NoAI:1b,PersistenceRequired:1b,CustomNameVisible:1b}"
 
             set {_loc} to location of player
-            add 4.5 to y-coord of {_loc} # Posunuto nahoru
+            add 4.5 to y-coord of {_loc}
             loop 5 times:
                 spawn armor stand at {_loc}
                 set {_h} to last spawned entity
@@ -110,6 +142,7 @@ command /clicker [<text>] [<text>]:
             delete {clicker::cooldown_end}
             delete {clicker::player_clicks::*}
             delete {clicker::push_counter::*}
+            delete {clicker::warned_5m}
             updateHolograms()
             send "{@prefix} &aᴄʟɪᴄᴋʏ ᴀ sᴛᴀᴛɪsᴛɪᴋʏ ʙʏʟʏ ʀᴇsᴇᴛᴏᴠáɴʏ!"
 
@@ -152,6 +185,10 @@ command /clicker [<text>] [<text>]:
 
 # --- LOGIKA KLIKÁNÍ ---
 
+on combust:
+    if scoreboard tags of event-entity contains "clicker_mob":
+        cancel event
+
 on damage:
     set {_tags::*} to scoreboard tags of victim
     if {_tags::*} contains "clicker_mob":
@@ -173,12 +210,15 @@ function clickLogic(p: player):
             delete {clicker::cooldown_end}
             delete {clicker::player_clicks::*}
             delete {clicker::push_counter::*}
+            delete {clicker::warned_5m}
+            broadcast "{@prefix} &e&lSᴋᴇʟᴇᴛᴏɴ ᴄʟɪᴄᴋᴇʀ &fse resetnul!"
             updateHolograms()
 
     # Kontrola limitu
     if {clicker::current_clicks} >= {@click_limit}:
         set {_diff} to difference between {clicker::cooldown_end} and now
-        send "{@prefix} &cᴍᴏʙ ᴊᴇ ᴠʏᴄᴇʀᴘᴀɴý! ᴏʙɴᴏᴠí sᴇ ᴢᴀ &e%{_diff}%&c." to {_p}
+        set {_time} to formatTime({_diff})
+        send "{@prefix} &cᴍᴏʙ ᴊᴇ ᴠʏᴄᴇʀᴘᴀɴý! ᴏʙɴᴏᴠí sᴇ ᴢᴀ &e%{_time}%&c." to {_p}
         updateHolograms()
         stop
 
@@ -208,9 +248,9 @@ function clickLogic(p: player):
     if {clicker::current_clicks} >= {@click_limit}:
         set {clicker::cooldown_end} to now
         add {@reset_cooldown} to {clicker::cooldown_end}
-        broadcast "{@prefix} &e&lᴍᴏʙ ʙʏʟ ᴠʏᴛěžᴇɴ! &fᴅᴀʟší ᴋʟɪᴋáɴí ʙᴜᴅᴇ ᴍᴏžɴé ᴢᴀ &e{@reset_cooldown}&f."
+        broadcast "{@prefix} &e&lᴍᴏʙ ʙʏʟ ᴠʏᴛěžᴇɴ! &fᴅᴀʟší ᴋʟɪᴋáɴí ʙᴜᴅᴇ ᴍᴏžɴé ᴢᴀ &e1 ʜᴏᴅɪɴᴜ&f."
 
-    # Anti-autoclicker (pouze každý 20. klik)
+    # Anti-autoclicker
     if {clicker::push_counter::%uuid of {_p}%} >= {@push_every_x_clicks}:
         set {clicker::push_counter::%uuid of {_p}%} to 0
         set {_v} to vector between {clicker::location} and {_p}
@@ -253,7 +293,8 @@ function updateHolograms():
     # H5: Status
     if {clicker::current_clicks} >= {@click_limit}:
         set {_cd} to difference between {clicker::cooldown_end} and now
-        set custom name of {-clicker::session::h5} to "&c&lᴏʙɴᴏᴠᴀ: &e&l%{_cd}%"
+        set {_time} to formatTime({_cd})
+        set custom name of {-clicker::session::h5} to "&c&lᴏʙɴᴏᴠᴀ ᴢᴀ: &e&l%{_time}%"
     else:
         set custom name of {-clicker::session::h5} to "&a&lᴀᴋᴛɪᴠɴí"
 
