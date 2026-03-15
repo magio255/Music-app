@@ -108,8 +108,10 @@ command /clicker [<text>] [<text>]:
         if arg-1 is "reset":
             set {clicker::current_clicks} to 0
             delete {clicker::cooldown_end}
+            delete {clicker::player_clicks::*}
+            delete {clicker::push_counter::*}
             updateHolograms()
-            send "{@prefix} &aᴄʟɪᴄᴋʏ ʙʏʟʏ ʀᴇsᴇᴛᴏᴠáɴʏ!"
+            send "{@prefix} &aᴄʟɪᴄᴋʏ ᴀ sᴛᴀᴛɪsᴛɪᴋʏ ʙʏʟʏ ʀᴇsᴇᴛᴏᴠáɴʏ!"
 
         if arg-1 is "info":
             send "{@prefix} &eᴅɪᴀɢɴᴏsᴛɪᴋᴀ:"
@@ -169,6 +171,8 @@ function clickLogic(p: player):
         if now >= {clicker::cooldown_end}:
             set {clicker::current_clicks} to 0
             delete {clicker::cooldown_end}
+            delete {clicker::player_clicks::*}
+            delete {clicker::push_counter::*}
             updateHolograms()
 
     # Kontrola limitu
