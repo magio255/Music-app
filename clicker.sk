@@ -53,9 +53,9 @@ function cacheEntities():
                 set {-clicker::session::h5} to loop-entity
 
 function formatTime(t: timespan) :: text:
-    set {_s} to total seconds of {_t}
+    set {_s} to ({_t} / 1 second)
     set {_m} to floor({_s} / 60)
-    set {_rs} to floor({_s} mod 60)
+    set {_rs} to floor({_s} - ({_m} * 60))
     if {_m} > 0:
         return "%{_m}% minuty %{_rs}% sekundy"
     return "%{_rs}% sekundy"
@@ -65,11 +65,11 @@ function formatTime(t: timespan) :: text:
 every 30 seconds:
     if {clicker::cooldown_end} is set:
         set {_diff} to difference between {clicker::cooldown_end} and now
-        set {_m} to total minutes of {_diff}
+        set {_m} to ({_diff} / 1 minute)
 
         # 5 minutové varování
-        if {_m} <= 5:
-            if {_m} > 4.5:
+        if {_m} <= 5.1:
+            if {_m} >= 4.5:
                 if {clicker::warned_5m} is not set:
                     set {clicker::warned_5m} to true
                     broadcast "{@prefix} &e&lSᴋᴇʟᴇᴛᴏɴ ᴄʟɪᴄᴋᴇʀ &fse resetuje za &e5 ᴍɪɴᴜᴛ!"
