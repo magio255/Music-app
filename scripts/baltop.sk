@@ -1,0 +1,114 @@
+# ʙᴀʟᴛᴏᴘ sᴋʀɪᴘᴛ
+# ᴀᴜᴛᴏʀ: ᴊᴜʟᴇs
+
+variables:
+    {baltop::last_update} = 0
+
+function updateBaltop():
+    clear {-baltop::ordered::*}
+    loop all offline players:
+        set {_bal} to loop-offline player's balance
+        set {-baltop::temp::%loop-offline player's name%} to {_bal}
+
+    # Sort logic
+    set {_n} to 0
+    loop {-baltop::temp::*}:
+        add 1 to {_n}
+
+    loop {_n} times:
+        set {_max} to -1
+        set {_top_player} to ""
+        loop {-baltop::temp::*}:
+            if loop-value-2 > {_max}:
+                set {_max} to loop-value-2
+                set {_top_player} to loop-index
+        if {_top_player} is not "":
+            add "%{_top_player}%;;%{_max}%" to {-baltop::ordered::*}
+            delete {-baltop::temp::%{_top_player}%}
+
+    set {baltop::last_update} to now
+
+every 10 seconds:
+    updateBaltop()
+
+on script load:
+    set {baltop::last_update} to now
+    updateBaltop()
+
+command /baltop [<integer>]:
+    trigger:
+        set {_p} to arg-1
+        if {_p} is not set:
+            set {_p} to 1
+        if {_p} < 1:
+            set {_p} to 1
+        openBaltop(player, {_p})
+
+function openBaltop(p: player, page: integer):
+    set {_v} to chest inventory with 6 rows named "ʙᴀʟᴛᴏᴘ"
+    set {_start} to ({_page} - 1) * 45
+    set {_size} to size of {-baltop::ordered::*}
+
+    # Prevent empty pages beyond the last page
+    if {_start} >= {_size}:
+        if {_size} > 0:
+            set {_page} to ceil({_size} / 45)
+            set {_start} to ({_page} - 1) * 45
+        else:
+            set {_page} to 1
+            set {_start} to 0
+
+    set {_i} to 0
+    loop 45 times:
+        set {_index} to {_start} + loop-number
+        set {_data} to {-baltop::ordered::%{_index}%}
+        if {_data} is set:
+            set {_split::*} to {_data} split at ";;"
+            set {_name} to {_split::1}
+            set {_bal} to {_split::2}
+            set {_item} to skull of ({_name} parsed as offline player) named "&e%{_index}%. &f%{_name}%"
+            set lore of {_item} to "&7ʙᴀʟᴀɴᴄᴇ: &6%{_bal}% ᴍᴏɴᴇʏ"
+            set slot {_i} of {_v} to {_item}
+        add 1 to {_i}
+
+    set slot 45 of {_v} to arrow named "&cᴢᴘěᴛ"
+    set slot 49 of {_v} to oak sign named "&eʜʟᴇᴅᴀᴛ ʜʀáčᴇ"
+    set slot 53 of {_v} to arrow named "&aᴅᴀʟší"
+
+    open {_v} to {_p}
+    set {baltop::page::%uuid of {_p}%} to {_page}
+
+on inventory click:
+    if name of event-inventory is "ʙᴀʟᴛᴏᴘ":
+        cancel event
+        if clicked slot is 45:
+            set {_page} to {baltop::page::%uuid of player%}
+            if {_page} > 1:
+                openBaltop(player, {_page} - 1)
+        else if clicked slot is 53:
+            set {_page} to {baltop::page::%uuid of player%}
+            set {_size} to size of {-baltop::ordered::*}
+            if ({_page} * 45) < {_size}:
+                openBaltop(player, {_page} + 1)
+        else if clicked slot is 49:
+            close player's inventory
+            send "&6&lʙᴀʟᴛᴏᴘ &8» &fɴᴀᴘɪš ᴊᴍéɴᴏ ʜʀáčᴇ ᴅᴏ ᴄʜᴀᴛᴜ:"
+            set {baltop::search::%uuid of player%} to true
+
+on chat:
+    if {baltop::search::%uuid of player%} is set:
+        cancel event
+        delete {baltop::search::%uuid of player%}
+        set {_search} to message
+        set {_rank} to 0
+        set {_found} to false
+        loop {-baltop::ordered::*}:
+            add 1 to {_rank}
+            set {_split::*} to loop-value split at ";;"
+            if {_split::1} is {_search}:
+                set {_found} to true
+                set {_bal} to {_split::2}
+                send "&6&lʙᴀʟᴛᴏᴘ &8» &fʜʀáč &e%{_search}% &fᴊᴇ ɴᴀ &6%{_rank}%. ᴍísᴛě s ʙᴀʟᴀɴᴄí &6%{_bal}% ᴍᴏɴᴇʏ"
+                stop
+        if {_found} is false:
+            send "&6&lʙᴀʟᴛᴏᴘ &8» &fʜʀáč &e%{_search}% &fɴᴇʙʏʟ ɴᴀʟᴇᴢᴇɴ ᴠ ʙᴀʟᴛᴏᴘᴜ."
