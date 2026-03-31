@@ -1,0 +1,213 @@
+# Required Addons: SkQuery (RAM expressions), skript-reflect (Garbage Collection)
+
+import:
+    java.lang.Runtime
+
+options:
+    # --- Konfigurace ---
+    perm: admin.ram
+    prefix: &8[&bʀᴀᴍ ᴄʟᴇᴀɴᴇʀ&8] &7
+
+    # Automatické čištění (v minutách)
+    interval: 10
+
+    # Výchozí intenzita (low, normal, high)
+    intensity: normal
+
+    # Funkce - Zapnout/Vypnout (true/false)
+    enable-chunks: true
+    enable-entities: true
+    enable-gc: true
+
+    # Chunk unloading radius (v chuncích od hráče)
+    chunk-radius: 4
+
+    # Entity limit v blízkosti hráče
+    entity-limit: 100
+
+    # --- Zprávy (Small Caps) ---
+    msg-no-perm: &cɴᴇᴍáš ᴘᴏᴛřᴇʙɴá ᴏᴘʀáᴠɴěɴí!
+    msg-cleaned: &aᴘᴀᴍěť ʙʏʟᴀ úꜱᴘěšɴě ᴠʏčɪšᴛěɴᴀ.
+    msg-auto-clean: &7ᴘʀᴏʙíʜá ᴀᴜᴛᴏᴍᴀᴛɪᴄᴋé čɪšᴛěɴí ᴘᴀᴍěᴛɪ...
+    msg-status-title: &bꜱᴛᴀᴠ ꜱʏꜱᴛéᴍᴜ ʀᴀᴍ
+
+variables:
+    {ram::auto_clean} = true
+    {ram::last_clean} = "ɴɪᴋᴅʏ"
+
+on load:
+    set {ram::last_clean} to now
+
+command /ram [<text>] [<text>]:
+    permission: {@perm}
+    permission message: {@msg-no-perm}
+    trigger:
+        if arg-1 is not set:
+            send "{@prefix} ᴘᴏᴜžɪᴛí: /ʀᴀᴍ <ɪɴꜰᴏ|ɢᴜɪ|ᴄʟᴇᴀɴ>"
+            stop
+
+        if arg-1 is "info" or "status":
+            make player execute command "/ramstatus"
+
+        else if arg-1 is "gui":
+            ram_open_gui(player)
+
+        else if arg-1 is "clean":
+            set {_i} to arg-2 ? "{@intensity}"
+            make player execute command "/ramclean %{_i}%"
+
+command /raml [<text>]:
+    permission: {@perm}
+    permission message: {@msg-no-perm}
+    trigger:
+        if arg-1 is "clean":
+            make player execute command "/ramclean {@intensity}"
+        else:
+            send "{@prefix} ᴘᴏᴜžɪᴛí: /ʀᴀᴍʟ ᴄʟᴇᴀɴ"
+
+command /ramstatus:
+    permission: {@perm}
+    permission message: {@msg-no-perm}
+    trigger:
+        set {_max} to max ram
+        set {_free} to free ram
+        set {_total} to total ram
+        set {_used} to {_total} - {_free}
+
+        send ""
+        send "      {@msg-status-title}"
+        send "  &8» &7ᴠʏᴜžɪᴛᴏ: &b%{_used}% ᴍʙ &8/ &3%{_max}% ᴍʙ"
+        send "  &8» &7ᴠᴏʟɴᴏ: &a%{_free}% ᴍʙ"
+        send "  &8» &7ᴄᴇʟᴋᴇᴍ: &f%{_total}% ᴍʙ"
+        send "  &8» &7ᴘᴏꜱʟᴇᴅɴí čɪšᴛěɴí: &e%{ram::last_clean}%"
+        send ""
+
+command /ramclean [<text>]:
+    permission: {@perm}
+    permission message: {@msg-no-perm}
+    trigger:
+        set {_intensity} to arg-1 ? "{@intensity}"
+        send "{@prefix} ꜱᴘᴏᴜšᴛíᴍ čɪšᴛěɴí (ɪɴᴛᴇɴᴢɪᴛᴀ: &b%{_intensity}%&7)..."
+
+        # Volání čistící funkce
+        ram_clean({_intensity})
+
+        send "{@prefix} {@msg-cleaned}"
+
+function ram_clean(intensity: text):
+    set {ram::last_clean} to now
+
+    # 1. Garbage Collection (skript-reflect)
+    if {@enable-gc} is true:
+        set {_runtime} to Runtime.getRuntime()
+        if {_intensity} is "low":
+            {_runtime}.gc()
+        else if {_intensity} is "high":
+            {_runtime}.gc()
+            wait 1 tick
+            {_runtime}.gc()
+        else: # normal
+            {_runtime}.gc()
+
+    # 2. Chunk Unloading
+    if {@enable-chunks} is true:
+        unload_unused_chunks()
+
+    # 3. Entity Cleanup
+    if {@enable-entities} is true:
+        cleanup_entities()
+
+# Automatický plánovač
+every {@interval} minutes:
+    if {ram::auto_clean} is true:
+        broadcast "{@prefix} {@msg-auto-clean}"
+        ram_clean("{@intensity}")
+
+function unload_unused_chunks():
+    loop all worlds:
+        set {_world} to loop-world
+        clear {_player_locs::*}
+        loop all players:
+            if loop-player's world is {_world}:
+                add location of loop-player to {_player_locs::*}
+
+        # Omezení počtu chunků na jeden běh pro snížení lagu
+        set {_count} to 0
+        loop loaded chunks of {_world}:
+            set {_chunk} to loop-value-2
+            set {_chunk_loc} to location of {_chunk}
+            set {_unload} to true
+            loop {_player_locs::*}:
+                if distance between loop-value-3 and {_chunk_loc} is less than ({@chunk-radius} * 16):
+                    set {_unload} to false
+                    stop loop
+            if {_unload} is true:
+                unload {_chunk}
+                add 1 to {_count}
+                if {_count} > 50: # Limit na 50 chunků v jednom tiků pro ochranu TPS
+                    wait 1 tick
+                    set {_count} to 0
+
+function cleanup_entities():
+    loop all players:
+        set {_p} to loop-player
+        set {_count} to 0
+        loop entities in radius 32 of {_p}:
+            if loop-entity-2 is not a player:
+                add 1 to {_count}
+                if {_count} > {@entity-limit}:
+                    delete loop-entity-2
+
+function ram_open_gui(p: player):
+    set {_gui} to chest inventory with 3 rows named "&8ʀᴀᴍ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ"
+
+    # Pozadí
+    loop 27 times:
+        set slot (loop-number - 1) of {_gui} to black stained glass pane named " "
+
+    # Status
+    set {_max} to max ram
+    set {_free} to free ram
+    set {_total} to total ram
+    set {_used} to {_total} - {_free}
+    set slot 13 of {_gui} to paper named "&bꜱᴛᴀᴠ ꜱʏꜱᴛéᴍᴜ" with lore "&7ᴠʏᴜžɪᴛᴏ: &f%{_used}% ᴍʙ" and "&7ᴠᴏʟɴᴏ: &f%{_free}% ᴍʙ" and "&7ᴄᴇʟᴋᴇᴍ: &f%{_total}% ᴍʙ" and "" and "&eᴋʟɪᴋɴɪ ᴘʀᴏ ɪɴꜰᴏ ᴅᴏ ᴄʜᴀᴛᴜ"
+
+    # Čištění - Různé intenzity
+    set slot 10 of {_gui} to green dye named "&aɴíᴢᴋá ɪɴᴛᴇɴᴢɪᴛᴀ" with lore "&7ʀʏᴄʜʟé čɪšᴛěɴí ᴘᴀᴍěᴛɪ."
+    set slot 11 of {_gui} to yellow dye named "&eɴᴏʀᴍáʟɴí ɪɴᴛᴇɴᴢɪᴛᴀ" with lore "&7ꜱᴛᴀɴᴅᴀʀᴅɴí čɪšᴛěɴí ᴘᴀᴍěᴛɪ."
+    set slot 12 of {_gui} to red dye named "&cᴠʏꜱᴏᴋá ɪɴᴛᴇɴᴢɪᴛᴀ" with lore "&7ᴀɢʀᴇꜱɪᴠɴí čɪšᴛěɴí ᴘᴀᴍěᴛɪ."
+
+    # Funkce
+    set slot 15 of {_gui} to grass block named "&6ᴠʏčɪꜱᴛɪᴛ ᴄʜᴜɴᴋʏ" with lore "&7ᴜɴʟᴏᴀᴅ ɴᴇᴘᴏᴜžíᴠᴀɴýᴄʜ ᴄʜᴜɴᴋů."
+    set slot 16 of {_gui} to skeleton spawn egg named "&eᴠʏčɪꜱᴛɪᴛ ᴇɴᴛɪᴛʏ" with lore "&7ᴏᴅꜱᴛʀᴀɴěɴí ᴘřᴇʙʏᴛᴇčɴýᴄʜ ᴇɴᴛɪᴛ."
+
+    # Info Kniha
+    set slot 26 of {_gui} to book named "&fɪɴꜰᴏʀᴍᴀᴄᴇ ᴏ čɪšᴛěɴí" with lore "&7ɴíᴢᴋá: &fʀʏᴄʜʟý ɢᴄ" and "&7ɴᴏʀᴍáʟɴí: &fꜱᴛᴀɴᴅᴀʀᴅɴí ɢᴄ (2x)" and "&7ᴠʏꜱᴏᴋá: &fᴀɢʀᴇꜱɪᴠɴí ɢᴄ (3x)" and "&7ᴄʜᴜɴᴋʏ: &fᴜɴʟᴏᴀᴅ ᴠᴢᴅáʟᴇɴýᴄʜ ᴄʜᴜɴᴋů" and "&7ᴇɴᴛɪᴛʏ: &fᴏᴅꜱᴛʀᴀɴěɴí ᴍᴏʙů ɴᴀᴅ ʟɪᴍɪᴛ"
+
+    open {_gui} to {_p}
+
+on inventory click:
+    if name of event-inventory is "&8ʀᴀᴍ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ":
+        cancel event
+        if index of event-slot is 13:
+            make player execute command "/ramstatus"
+            close player's inventory
+        else if index of event-slot is 10:
+            make player execute command "/ramclean low"
+            close player's inventory
+        else if index of event-slot is 11:
+            make player execute command "/ramclean normal"
+            close player's inventory
+        else if index of event-slot is 12:
+            make player execute command "/ramclean high"
+            close player's inventory
+        else if index of event-slot is 15:
+            send "{@prefix} ᴜɴʟᴏᴀᴅɪɴɢ ᴄʜᴜɴᴋꜱ..." to player
+            unload_unused_chunks()
+            send "{@prefix} ᴄʜᴜɴᴋʏ ʙʏʟʏ ᴠʏčɪšᴛěɴʏ." to player
+            close player's inventory
+        else if index of event-slot is 16:
+            send "{@prefix} ᴄʟᴇᴀɴɪɴɢ ᴇɴᴛɪᴛɪᴇꜱ..." to player
+            cleanup_entities()
+            send "{@prefix} ᴇɴᴛɪᴛʏ ʙʏʟʏ ᴠʏčɪšᴛěɴʏ." to player
+            close player's inventory
