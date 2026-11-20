@@ -1,5 +1,6 @@
 Hi, I'm a 14-year-old programmer. I made this app just for fun, so if you want to say it's yours, I don't mind — do whatever you want.
 Put your MP3 music into the MojeHudba folder.
+For lyrics, put a file with the same name next to the song: `song.lrc` (timed lyrics) or `song.txt` (plain text).
 You can change the loading screen by replacing loading.mp4 with your own loading video.
 <img width="1434" height="706" alt="image" src="https://github.com/user-attachments/assets/a3afa353-ee1c-47b8-ae87-b632a21490cc" />
 
